@@ -1,0 +1,451 @@
+爬虫在使用场景中的分类：
+    - 通用爬虫
+        抓取系统重要组成部分。抓取的是一整张页面的数据。
+    - 聚焦爬虫
+        是建立在通用爬虫的基础之上。抓取的是页面中特定的局部内容。
+    - 增量式爬虫
+        检测网站中数据更新的情况。只会抓取网站中最新更新出来的数据。
+
+爬虫的矛与盾：
+    - 反爬机制
+        门户网站，可以通过制定相应的策略或者技术手段，防止爬虫程序进行网站数据的爬取。
+    - 反反爬策略
+        爬虫程序可以通过制定相关的策略或者技术手段，破解门户网站中具备的反爬机制，从而获取门户网站中的相关数据。
+
+http协议：
+    - 概念：服务器与客户端进行数据交互的一种形式。
+    - 常用请求头信息：
+        （1）User-Agent：请求载体的身份标识。
+        （2）Connection：请求完毕后，是断开连接还是保持连接。
+    - 常见响应头信息：
+        （1）Content-Type：服务器响应回客户端的数据类型
+
+https协议：
+    - 概念：安全的超文本传输协议
+    - 加密方式
+        （1）对称密钥加密
+        （2）非对称密钥加密
+        （3）证书密钥加密
+
+requests模块：python中原生的一款基于网络请求的模块，功能强大，简单便捷，效率极高。
+    - 作用：模拟浏览器发请求
+    - 如何使用
+        （1）指定url
+        （2）发起请求（Get or Post）
+        （3）获取响应数据
+        （4）持久化存储
+
+动态加载数据：
+    网页信息可能是动态加载的，ajax动态请求，可以在XHR中查看真正url
+
+数据解析：
+    - 正则
+    - bs4
+    - xpath（***）
+
+数据解析原理：
+    大部分文本内容都存在标签中或者标签对应的属性中
+    进行指定标签定位
+    标签或标签对应的属性中存储的数据值进行提取（解析）
+
+聚焦爬虫编码流程：
+    - 指定url
+    - 发起请求
+    - 获取响应数据
+    - 数据解析
+    - 持久化存储
+
+正则表达式：(import re)
+    - 单字符：
+        . : 除换行以外的所有字符
+        [] : [aoe] [a-w] 匹配集合任意一个字符
+        \d : 数字 [0-9]
+        \D : 非数字
+        \w : 数字，字谜，下划线，中文
+        \W : 非\w
+        \s : 所有的空白字符，包括空格，制表符，换页符等等。等价于 [\f\n\r\t\v]
+        \S : 非空白
+    - 数量修饰：
+        * : 任意多次 >=0
+        + : 至少依次 >=1
+        ? : 可有可无，0次或1次
+        {m} : 固定m次 hello{3, }
+        {m,} : 至少m次
+        {m,n} : m-n次
+    - 边界：
+        $ : 以某某结尾
+        ^ : 以某某开头
+    - 分组：
+        (ab)
+    - 贪婪模式： .*
+    - 非贪婪模式： .*?
+    - re.I: 忽略大小写
+    - re.M: 多行匹配
+    - re.S: 单行匹配
+    - re.sub(正则表达式，替换内容， 字符串)
+
+    <div class="pic">
+          <a href="https://www.douban.com/photos/album/1727324287/">
+          <img src="https://img1.doubanio.com/view/photo/albumcover/public/p2578730628.webp"
+          data-origin="https://img1.doubanio.com/view/photo/albumcover/public/p2578730628.webp" alt="">
+          </a>
+      </div>
+
+    ex = '<div class="pic">.*?<img src=.*? data-origin="(.*?)" alt=.*?</div>'
+
+bs4进行数据解析：
+    - 数据解析原理：
+        标签定位
+        提取标签、标签属性的数据值
+    - bs4数据解析原理：
+        1.实例化一个BeautifulSoup对象，并将页面源码数据加载到该对象中
+        2.通过调用BeautifulSoup对象中相关属性或者方法进行标签定位和数据提取
+    - 进行环境的安装：
+        pip install bs4
+        pip install lxml
+    - 如何实例化BeautifulSoup对象：
+        1.from bs4 import BeautifulSoup
+        2.对象的实例化
+            - 将本地的html文档中的数据加载到该对象中
+                fp = open('./test.html', 'r', encoding='utf-8')
+                soup = BeautifulSoup(fp, 'lxml')
+            - 将互联网上获取的页面源码加载到该对象中
+                page_text = response.text
+                soup = BeautifulSoup(page_text, 'lxml')
+    - 提供的用于数据解析的方法和属性：
+        soup.tagName: 返回的是文档中出现的第一个tagName标签
+        soup.find()
+            - soup.find('tagName'): 相当于soup.tagName
+            - soup.find('tagName', class_='song'): 属性定位
+            - soup.find_all('tagName'): 返回符合要求的所有标签，是一个列表
+        soup.select():
+            - select('某种选择器'): 返回的是一个列表
+            - 层级选择器：
+                soup.select('.tang > ul > li > a') > 表示一个层级
+                soup.select('.tang > ul a') ' '空格表示多个层级
+    - 获取标签中的文本数据
+        soup.a.text/.strong/.get_text():
+            text/get_text(): 可以获取某一个标签中的所有文本内容
+            string: 只可以获取该标签下面直系的文本内容
+    - 获取标签中属性值
+        soup.a['属性名']
+
+xpath解析： 最常用且最便捷高效的一种解析方式，通用性强。
+    - 原理：1.实例化一个etree对象，且需要将被解析的页面源码数据加载到该对象中。
+           2.调用etree对象中的xpath方法结合着xpath表达式实现标签的定位和内容的捕获。
+    - 环境的安装：
+        pip install lxml
+    - 如何实例化etree对象: from lxml import etree
+        将本地的html文档中的数据加载到该对象中
+            etree.parse(filePath)
+        将互联网上获取的页面源码加载到该对象中
+            etree.HTML(page_text)
+    - xpath("xpath表达式")
+        /: 表示从根节点开始定位，一个/表示一个层级.
+        //: 表示多个层级（可以表示从任意位置定位）
+        属性定位: //div[@class="song"] tag[@attrNAme="attrValue"]
+        索引定位： tree.xpath('//div[@class="song"]/p[3]') 索引是从1开始的
+        取文本：/text() 只能取到标签的直系文本 //text() 可以取到标签中非直系的文本内容（所有文本内容）
+        取属性：/@attrName ==>img/@src
+        局部解析： title = li.xpath('./a/div[2]//h3/text()')[0] 一定要加"."
+
+验证码识别：
+    - 识别验证码操作：
+        - 人工肉眼识别。（不推荐）
+        - 第三方自动识别。（推荐）
+            - ddddocr库：
+                import ddddocr
+                ocr = ddddocr.DdddOcr()
+                with open('1.png', 'rb') as f:
+                    img_bytes = f.read()
+                res = ocr.classification(img_bytes)
+                print(res)
+
+模拟登录：
+    - 爬取基于某些用户的用户信息。
+    - 点击登录按钮之后可能会发起一个post请求
+    - post请求中会携带相关的用户信息（用户名，密码，验证码....）
+    - 页面会更新_VIEWSTATE 页面隐藏域和__VIEWSTATEGENERATOR 页面隐藏域时，我们需要对这个数据也进行爬取
+        viewstate = tree.xpath("//input[@id='__VIEWSTATE']/@value")[0]
+        viewstategenerator = tree.xpath("//input[@id='__VIEWSTATEGENERATOR']/@value")[0]
+        EVENTVALIDATION = tree.xpath("//input[@id='__EVENTVALIDATION']/@value")
+    - 我们一次只能用requests发一次请求，之后再需要发请求时，用Session()，将请求包装成一个对象，这样就不会导致访问失败
+        session = requests.Session()
+        code_data = session.get(url=code_img_src, headers=headers).content
+http/https协议特性： 无状态
+    - 发起的第二次基于个人页面请求的时候，服务器端并不知道此请求是基于登录状态下的请求
+    - cookie： 用来让服务器端记录客户端的相关状态
+        - 自动处理： cookie值的来源： 登陆时post请求中携带有cookie值
+            session会话对象：
+                - 作用：
+                    - 可以进行请求的发送
+                    - 如果请求过程中产生了cookie，则该cookie会被自动存储携带在该session对象中
+
+代理： 破解封IP这种反爬机制
+什么是代理：
+    - 代理服务器
+代理的作用：
+    - 突破自身ip访问的限制
+    - 可以隐藏自身真实的ip
+代理IP的匿名度：
+    - 透明：服务器知道使用了代理，知道真实ip
+    - 匿名：服务器知道使用了代理，不知道真实IP
+    - 高匿：服务器不知道使用了代理
+
+高性能异步爬虫：
+    - 异步爬虫的方式：
+        - 多线程，多进程（不建议）： 无法无限制的开启多线程和多进程。
+        - 进程池、线程池：池的容量是有上线的。
+        - 单线程 + 异步协程（推荐）：
+            - event_loop: 事件循环，相当于一个无限循环，我们可以把一些函数注册到这个事件循环上，当满足某些条件时，函数就会被循环执行。
+            - coroutine: 协程对象，我们可以将协程对象注册到事件循环中，它会被事件循环调用。我们可以使用async关键字来定义一个方法，这个方法在调用的时候不会立即执行，而是返回一个协程对象。
+            - task: 任务，它是对协程对象的进一步封装，包含了任务的各个状态。
+            - future: 代表将要执行或还没有执行的任务，实际上和task没有本质区别。
+            - async: 定义一个协程。
+            - await: 用来挂起阻塞方法的执行。
+
+
+selenium模块的基本使用：
+    - 下载selenium： pip install selenium
+    - 下载一个浏览器驱动程序（谷歌）
+        - 下载路径：http://chromedriver.storage.googleapis.com/index.html
+    - 实例化一个浏览器对象
+    - 编写基于浏览器自动化操作代码
+        - 发起请求: get(url)
+        - 标签定位: find系列方法
+        - 标签交互: send_keys('xxx')
+        - 执行js程序: execute_script('jsCode')
+        - 前进，后退: back(),forward()
+        - 关闭浏览器: quit()
+    - selenium处理iframe
+        - 如果定位的标签存在iframe标签之中，则必须使用switch_to.iframe(id)
+        - 动作链: from selenium.webdriver import ActionChains
+            - 实例化一个动作链对象: action = ActionChains(bro)
+            - 执行操作: action.click_and_hold(div) action.move_by_offset(17, 0).perform()
+            - 释放对象: action.release()
+
+scrapy框架
+    - 什么是框架?
+        - 集成了很多功能并且具有很强通用性的一个项目模板。
+    - 如何学习框架?
+        - 专门学习框架封装的各种功能的详细用法。
+
+    - 什么是scrapy?
+        - 爬虫中封装好的一个明星框架。
+            - 功能: 高性能的持久化存储，异步的数据下载，高性能的数据解析操作，分布式
+    - 基本使用
+        - 环境安装: mac/linux: pip install scrapy
+                 : windows: pip install wheel
+                            下载twisted，下载地址为: http://www.lfd.uci.edu/~gohlke/pythonlibs/#twisted
+                            下载twisted: pip install Twisted-20.3.0-cp39-cp39-win_amd64.whl
+                            pip install pywin32
+                            pip install scrapy
+        - 创建一个工程: scrapy startproject xxxPro
+        - cd xxxPro
+        - 在spiders子目录中创建一个爬虫文件
+         - scrapy genspider spiderName www.xxx.com
+         - 执行: scrapy crawl spiderName(scrapy crawl test --nolog 采用无日志信息输出，但是这样不好，我们使用接下来的方法)
+         - 在配置文件中添加: LOG_LEVEL = 'ERROR' 表示只输出错误信息
+         - 修改user-agent: USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36'
+    - scrapy数据解析
+        - 在parse(self, response)函数中进行编写，详细操作方法可见qiubai案例
+    - scrapy持久化存储
+        - 基于终端命令的持久化存储:
+            - 要求: 只可以将parse方法的返回值存储到本地的文本文件中
+            - 注意持久化存储的文件类型只可以为 'json', 'jsonlines', 'jl', 'csv', 'xml', 'marshal', 'pickle'
+            - scrapy crawl xxx -o filePath
+            - 优点: 简介高效便捷
+            - 缺点: 局限性比较强(数据只可以存储到指定文件后缀的文本文件中)
+        - 基于管道持久化存储:
+            - 数据解析
+            - 在item类中定义相关的属性
+            - 将解析到的数据封装到item类型的对象
+            - 将item类型的对象提交给管道进行持久化存储
+            - 在管道类的process_item中要将其接受到的item对象中存储的数据进行持久化存储操作
+            - 在配置文件中开启管道
+            - 好处：通用性强
+            - 爬虫文件提交的item类型对象最终会提交给哪一个管道类？
+                - 先执行的管道类
+
+面试题: 将爬取到的数据一份存储到本地一份存储到数据库，如何实现？
+   - 管道文件中一个管道类对应的是将数据存储到一种平台
+   - 爬虫文件提交的item只会给管道文件种第一个被执行的管道类接受
+   - process_item中的return item表示item将会被传递给下一个即将被执行的管道类
+
+基于spider的全站数据爬取
+   - 就是将网站下的某板块下的全部页码对应的页面数据进行爬取
+   - 爬取笑话网的段子数据
+       - 将所有页面的url添加到start_urls列表(不推荐)
+       - 自行手动进行请求发送
+
+scrapy五大核心部件
+    - 管道
+        - 与引擎交互，之后持久化存储
+    - spider
+        - 爬虫文件中的爬虫类
+    - 调度器
+        - 过滤器: 过滤重复的请求对象
+        - 队列: 存放请求对象
+    - 下载器
+        - 与互联网通信，数据下载
+    - 引擎
+        - 接收队列以及发送response
+        - 所有类都要经过引擎
+        - 核心作用: 用作数据流处理以及触发事件
+
+请求传参
+    - 使用场景: 爬取解析的数据不在同一张页面中。(深度爬取)
+    - 需求: 爬取boss直聘的岗位名称，岗位描述
+
+图片数据爬取之ImagePipeline
+    - 基于scrapy爬取字符串类型数据和图片类型数据的区域？
+        - 字符串: 只需要基于xpath解析且提交管道进行持久化存储
+        - 图片: 我们只能解析到图片地址，之后我们要单独对图片地址发起请求获取图片二进制类型数据
+    - 基于ImagePipeline:
+        - 只需要将img的src属性值提交给管道，管道就会对图片的src进行请求发送获取图片的二进制类型的数据，且还会进行持久化存储
+    - 需求: 爬取站长素材中的高清图片
+
+中间件
+    - 下载中间件
+        - 位置: 引擎和下载器之间
+        - 作用: 批量拦截到整个工程中所有的请求和响应
+        - 拦截请求:
+            - 请求头信息(UA伪装, 代理ip)
+        - 拦截响应:
+            - 篡改响应数据，响应对象
+
+CrawlSpider: 类，Spider的一个子类
+    - 全站数据爬取的方式
+        - 基于spider实现: 手动请求发送
+        - 基于CrawlSpider实现
+    - CrawlSpider的使用:
+        - 创建一个工程
+        - 创建爬虫文件: scrapy genspider -t crawl xxx www.xxx.com
+        - 链接提取器
+            - 作用: 根据指定规则(allow=r'正则表达式')进行指定链接提取
+        - 规则解析器
+            - 作用: 将链接提取器提取到的链接进行指定规则(callback)的解析操作
+
+分布式爬虫
+    - 概念: 我们需要搭建一个分布式机群，让其对一组资源进行分布联合爬取
+    - 作用: 提示爬取数据的效率
+    - 如何实现分布式？
+        - 安装一个scrapy-redis的组件
+        - 原生的scrapy是不可以实现分布式爬虫，必须要让scrapy结合这scrapy-redis组件一起实现分布式爬虫
+        - 为什么原生的scrapy不可以实现分布式爬虫？
+            - 不同电脑的scrapy调度器不能共享
+            - 管道不可以被分布式机群共享
+    - scrapy-redis组件的作用:
+        - 可以给原生的scrapy框架提供可以被共享的管道和调度器
+    - 实现流程
+        - 创建一个工程
+        - 创建一个基于crawlspider的爬虫文件
+        - 修改当前的爬虫文件:
+            - from scrapy_redis.spiders import RedisCrawlSpider
+            - 将start_url allowed_domain进行注释
+            - redis_key = 'name' 可以被共享的调度器队列的名称
+            - 编写相关的数据解析操作
+            - 将当前爬虫类的父类修改成RedisCrawlSpider
+        - 修改配置文件
+            - 指定可以被共享的管道:
+                - ITEM_PIPELINES = {
+                    'scrapy_redis.pipelines.RedisPipeLine': 400,
+                }
+            - 指定调度器
+                - DUPEFILTER_CLASS = 'scrapy_redis.dupefilter.RFPDuperFilter'
+                - SCHEDULER = 'scrapy_redis.scheduler.Scheduler'
+                - SCHEDULER_PERSIST = True
+            - 指定redis服务器
+                - REDIS_HOST = '127.0.0.1' # 服务器ip
+                - REDIS_PORT = 6379
+        - redis相关操作配置:
+            - 配置redis的配置文件:
+                - linux或者mac: redis.conf
+                - windows: redis.windows.conf
+                - 打开配置文件修改:
+                    - 注释绑定: # bind 127.0.0.1
+                    - 关闭保护模式: protected-mode no
+                - 结合配置文件启动redis数据库
+                    - redis-server 配置文件
+                    - ./redis-cli
+        - 执行工程
+            - scrapy runspider xxx.py
+        - 向调度器的队列中放入起始url
+            - 调度器的队列在redis客户端中
+                - lpush xxx www.xxx.com
+
+增量式爬虫
+    - 概念: 检测网站数据更新情况，只会爬取网站最新更新出来的数据
+    - 分析:
+        - 起始url
+        - 基于CrawlSpider获取其他页面链接
+        - 基于Rule将其他页码链接进行请求
+        - 从每一个页面对应的页面源码中解析出每一部电影详情页的url
+
+        - 核心: 检测详情页的url之前有没有请求过
+            - 将爬取过的电影详情页url存储
+                - 存储到redis的set数据库
+                conn = Redis(host='127.0.0.1', port=6379)
+
+                ex = self.conn.sadd('urls', detail_url)
+                if ex == 1:
+                    print('该url没有被爬取过，可以进行数据爬取！'
+                    yield scrapy.Request(detail_url, callback=self.parse_detail)
+                else:
+                    print('数据还没有更新，暂无新数据！')
+
+                class PipeLine(object):
+                    conn = None
+                    def open_spider(self, spider):
+                        self.conn = spider.conn
+                    def process_item(self, item, spider):
+                        dic = {
+                            'name': item['name'],
+                            'desc': item['desc'],
+                        }
+                        print(dic)
+                        self.conn.lpush('movieData', dic)
+                        return item
+
+        - 对详情页的url发起请求，然后解析出电影的名称和时间
+        - 进行持久化存储
+
+scrapy_splash
+    - 使用scrapy_splash最终拿到的response相当于在浏览器全部渲染完成之后的网页页面
+    - 作用: 模拟浏览器加载js，并返回js运行后的数据
+    - 安装环境:
+        - 安装docker
+        - sudo docker pull scrapinghub/splash
+        - 尝试运行镜像:
+            - 在前台运行: sudo docker run -p 8050:8050 scrapinghub/splash
+            - 在后台运行: sudo docker run -d -p 8050:8050 scrapinghub/splash
+
+JS逆向
+    - 数据加密
+        - 看到的是一堆密文
+    - 请求头加密
+    - 表单加密
+        - 模拟生成规则，在被加密前是什么内容
+    - 参数加密
+    - cookie加密
+        - 通常是在浏览器有正确地响应，但是爬虫返回的是一堆js代码或者非正常的响应
+
+Web逆向技巧
+    - 爬虫的接口定位
+        - 字体加密；Unicode编码；数据加密
+    - 无混淆的js
+        - 关键字搜索
+            - 解密搜decrypt
+            - 加密搜encrypt
+            - ajax渲染搜JSON.parse （JSON.parse（函数或者方法（密文），a = 函数或者方法（密文）|JSON.parse(a)
+            - 搜接口自带的关键字（特点：方法或者函数包裹密文数据）
+        - xhr断点
+        - 路径搜索
+        - 跟栈
+        - hook
+            - 反debug: 内存写入变量
+            - 注入: 控制台注入 本地替换
+
+
+            1. html -- lxml -- re
+            2. json -- 如何提取键值以及组装成自己想要的样子

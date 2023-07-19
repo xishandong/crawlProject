@@ -1,0 +1,15 @@
+SHA-256 uses a series of mathematical operations,
+including bitwise operations (such as XOR, AND, and OR), rotations, and additions, to transform the input message and the internal state of the algorithm through 64 rounds.
+Each round has its own specific set of constants and functions.
+The message is first padded to a multiple of 512 bits (the block size) with a 1 bit,
+followed by as many 0 bits as necessary to reach the end of the block, and then a 64-bit integer representing the original length of the message is appended.
+The resulting message is then split into 512-bit blocks, which are processed in sequence.
+Each block is first divided into 16 32-bit words, which are then expanded into 64 32-bit words using a function that involves XOR, rotations, and additions.
+The expanded words are then processed through a series of 64 rounds, each of which involves several steps:
+The round constant is added to one of the words.
+Several words are passed through a set of logical functions (such as XOR, AND, and OR) and then added to another word.
+The words are rotated by a certain number of bits.
+The words are passed through another set of logical functions and added to another word.
+At the end of the 64 rounds, the resulting words are added to the initial hash values, and the resulting values are the final hash of the message.
+The specific constants and functions used in each round are carefully chosen to provide a high level of security and resistance to various attacks.
+The entire process of SHA-256 is designed to be computationally expensive and difficult to reverse, making it a strong cryptographic hash function.
