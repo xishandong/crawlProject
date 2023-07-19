@@ -1,6 +1,6 @@
-const Crypto = require('crypto')
+const Crypto = require('crypto-js')
 
-var d = "3637CB36B2E54A72A7002978D0506CDF"
+var d = "B3978D054A72A7002063637CCDF6B2E5"
 
 function sign(t) {
     for (var e in t)
@@ -25,7 +25,7 @@ function l(t) {
 
 // 创建标准md5算法
 function md5(text){
-    return Crypto.createHash('md5').update(text).digest('hex')
+    return Crypto.MD5(text).toString()
 }
 function u(t, e) {
     return t.toString().toUpperCase() > e.toString().toUpperCase() ? 1 : t.toString().toUpperCase() == e.toString().toUpperCase() ? 0 : -1
