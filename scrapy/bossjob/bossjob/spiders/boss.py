@@ -1,21 +1,18 @@
 import json
-import scrapy
-from ..items import BossjobItem
-from lxml import etree
-from ..requset import SeleniumRequest
 
+import scrapy
+from lxml import etree
+
+from ..items import BossjobItem
 
 
 class BossSpider(scrapy.Spider):
     name = 'boss'
 
-
-
     def start_requests(self):
         for pageNum in range(51, 90):
             url = f'https://www.zhipin.com/wapi/zpgeek/mobile/search/joblist.json?page={pageNum}&city=101020100&query='
             yield scrapy.Request(url=url, callback=self.parse)
-
 
     def parse(self, response, **kwargs):
         res = json.loads(response.text)
@@ -40,4 +37,3 @@ class BossSpider(scrapy.Spider):
             item['requirement'] = re
 
             yield item
-

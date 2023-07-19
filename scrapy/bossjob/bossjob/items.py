@@ -15,4 +15,3 @@ class BossjobItem(scrapy.Item):
     company_name = scrapy.Field()  # 公司名称
     requirement = scrapy.Field()  # 要求
     detail = scrapy.Field()
-

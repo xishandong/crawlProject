@@ -2,16 +2,15 @@
 #
 # See documentation in:
 # https://docs.scrapy.org/en/latest/topics/spider-middleware.html
-import random
 import time
+
 from scrapy import signals
 # useful for handling different item types with a single interface
-from itemadapter import is_item, ItemAdapter
 # 中间件1 -随机UA
 from scrapy.http import HtmlResponse
-from .requset import SeleniumRequest
 
 from .fake_useragent import get_ua
+from .requset import SeleniumRequest
 
 
 class BossjobRandomuaDownloaderMiddleware(object):
@@ -22,8 +21,6 @@ class BossjobRandomuaDownloaderMiddleware(object):
 
 
 # 中间件2 -随机代理
-import random
-from .settings import proxy_list
 
 
 class BossjobRandomProxyDownloadMiddleware(object):
@@ -44,7 +41,6 @@ class BossjobRandomProxyDownloadMiddleware(object):
 
 
 # 中间件3 -Cookie
-from .fakeCookie import COOKIE_LIST
 
 
 class BossjobCookieDownloaderMiddleware(object):
@@ -73,6 +69,7 @@ class seleniumDownloaderMiddleware(object):
 
     def __init__(self):
         self.option = webdriver.ChromeOptions()
+
         def create_proxyauth_extension(tunnelhost, tunnelport, proxy_username, proxy_password, scheme='http',
                                        plugin_path=None):
             if plugin_path is None:
