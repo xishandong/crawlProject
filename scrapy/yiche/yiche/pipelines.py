@@ -25,7 +25,7 @@ class mysqlPipeLine(object):
     cursor = None
 
     def open_spider(self, spider):
-        self.conn = pymysql.Connect(host='127.0.0.1', port=3306, user='root', password='dxs666dxs', db='Spider',
+        self.conn = pymysql.Connect(host='127.0.0.1', port=3306, user='root', password='', db='Spider',
                                     charset='utf8')
         print('开始插入数据')
 

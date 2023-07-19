@@ -38,7 +38,7 @@ class mysqlPipeLine(object):
     cursor = None
 
     def open_spider(self, spider):
-        self.conn = pymysql.Connect(host='127.0.0.1', port=3306, user='root', password='dxs666dxs', db='xioahua', charset='utf8')
+        self.conn = pymysql.Connect(host='127.0.0.1', port=3306, user='root', password='', db='xioahua', charset='utf8')
 
     def process_item(self, item, spider):
         self.cursor = self.conn.cursor()
