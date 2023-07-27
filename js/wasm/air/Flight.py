@@ -222,11 +222,6 @@ class CEAir:
                 time.sleep(2)
 
 
-def check_value(value):
-    if not value:
-        return 'import sys\nprint("您的输入有误!退出程序...")\nsys.exit(1)'
-
-
 if __name__ == '__main__':
     flight = CEAir()
     while True:
