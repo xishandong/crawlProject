@@ -22,7 +22,7 @@ class CEAir:
         self.cookies = {
             '_xid': 'CVUbYl9lz3HFU2na2mZviTHeQM%2BaLh%2FhZbEQ2Axq1MA%3D',
             '_fmdata': 'uD5xda4HKJuu34L%2BVFA7yz9OQ7lR4yI6hmuL2aRyRiYEBkNHudAH0OBn7047MefSAP4CBQbxadfirurKjXlEhA%3D%3D',
-            'acw_tc': 'ac11000116822592388965513e00ce89a852f5d79237d70f416ffeb9d66973'
+            'acw_tc': '76b20fe916907078124105028e350606ed4dea3f55c39eedf6c6dd2cd77ad3'
         }
         self.session = requests.Session()
         self.flag = 1
@@ -34,7 +34,11 @@ class CEAir:
         :param json_data: 表单信息
         :return: json数据
         """
-        resp = self.session.post(url=url, json=json_data, headers=self.headers, cookies=self.cookies)
+        refer = execjs.compile(open('refer_1306.js', 'r', encoding='utf-8').read()).call('getRefer', json_data)
+        par = {
+            'refer__1036': refer
+        }
+        resp = self.session.post(url=url, params=par, json=json_data, headers=self.headers, cookies=self.cookies)
         try:
             data = resp.json()['res']
             ctx = execjs.compile(open('./demo.js', 'r', encoding='utf-8').read()).call('decrypto', data)
@@ -220,6 +224,11 @@ class CEAir:
                     return None
             except:
                 time.sleep(2)
+
+
+def check_value(value):
+    if not value:
+        return 'import sys\nprint("您的输入有误!退出程序...")\nsys.exit(1)'
 
 
 if __name__ == '__main__':
