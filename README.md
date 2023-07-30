@@ -88,7 +88,7 @@
 
 #### 环境检测
 
-
+1. redBook x-s环境检测，需要自己把cookie和localstorage放到文件中
 
 #### wasm加密
 
