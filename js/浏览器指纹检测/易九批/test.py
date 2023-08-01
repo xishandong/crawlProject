@@ -1,82 +1,87 @@
+import json
 import time
 
 import execjs
 from curl_cffi import requests
 
-timestamp = str(int(time.time()))
 
-
-def getList():
+def get_data(json_data, url, sepUrl):
+    timestamp = str(int(time.time()))
     headers = {
         'Content-Type': 'application/json',
         'token': '',
     }
-    json_data = {
-        'data': {
-            'zoneId': '4932265882383941446',
-        },
-        'cityId': '701',
-        'userClassId': 1,
-        'userDisplayClass': 0,
-        'addressId': '',
-        'deviceType': 3,
-    }
-    x_ = execjs.compile(open('demo.js', 'r', encoding='utf-8').read()).call('setHeader', 'POST',
-                                                                            '/v54/ProductCategory/ListCategoryTree',
-                                                                            json_data, timestamp)
+    json_data = json_data
+    x_ = execjs.compile(open('demo.js', 'r', encoding='utf-8').read()) \
+        .call('setHeader', 'POST', sepUrl,
+              json.dumps(json_data, ensure_ascii=False, separators=(',', ':')), timestamp)
     headers.update(x_)
-    response = requests.post('https://www.yijiupi.com/v54/ProductCategory/ListCategoryTree', headers=headers,
-                             json=json_data)
+    response = requests.post(url, headers=headers,
+                             data=json.dumps(json_data, ensure_ascii=False, separators=(',', ':')), impersonate='chrome110')
     print(response.json())
 
 
-def getData():
-    headers = {
-        'Accept': 'application/json, text/plain, */*',
-        'User-Agent': 'Mozilla/5.0 (iPad; CPU OS 13_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/87.0.4280.77 Mobile/15E148 Safari/604.1',
-        'token': '',
-    }
-    json_data = {
-        'data': {
-            'sonCategoryId': '',
-            'brandId': '',
-            'firstCategoryId': '',
-            'searchKey': '国台国酱',
-            'specialAreaId': '',
-            'categoryIds': [],
-            'brandIds': [],
-            'labelId': None,
-            'isAscending': '',
-            'searchModes': [
-                2,
-            ],
-            'sort': 0,
-            'shopId': '',
-            'currentPage': 1,
-            'pageSize': 60,
-            'filterSpecialArea': False,
-            'searchSource': 1,
-            'warehouseIds': [],
-            'searchKeyNotCorrect': False,
-            'couponTemplateId': '',
-            'channelId': '',
+if __name__ == '__main__':
+    set1 = {
+        'json_data': {
+            'data': {
+                'zoneId': '4932265882383941446',
+            },
+            'cityId': '701',
+            'userClassId': 1,
+            'userDisplayClass': 0,
+            'addressId': '',
+            'deviceType': 3,
         },
-        'cityId': '701',
-        'userClassId': 1,
-        'userDisplayClass': 0,
-        'addressId': '',
-        'deviceType': 3,
+        'url': 'https://www.yijiupi.com/v54/ProductCategory/ListCategoryTree',
+        'sepUrl': '/v54/ProductCategory/ListCategoryTree'
     }
-    x_ = execjs.compile(open('demo.js', 'r', encoding='utf-8').read()).call('setHeader', 'POST',
-                                                                            '/v54/ProductCategory/ListProductCategory',
-                                                                            json_data, timestamp)
-    headers.update(x_)
-    response = requests.post('https://www.yijiupi.com/v54/ProductCategory/ListProductCategory', headers=headers,
-                             json=json_data, )
-    print(response.text)
-
-
-# 这个是主页
-getList()
-# 这个是搜索页，未通过
-getData()
+    # get_data(**set1)
+    set2 = {
+        'json_data': {
+            'cityId': '701',
+            'userClassId': 1,
+            'userDisplayClass': 0,
+            'addressId': '',
+            'deviceType': 3,
+        },
+        'url': 'https://www.yijiupi.com/v54/PurchaseChannel/List',
+        'sepUrl': '/v54/PurchaseChannel/List'
+    }
+    # get_data(**set2)
+    set3 = {
+        'json_data': {
+            'data': {
+                'sonCategoryId': '',
+                'brandId': '',
+                'firstCategoryId': '',
+                'searchKey': '国台国酱',
+                'specialAreaId': '',
+                'categoryIds': [],
+                'brandIds': [],
+                'labelId': None,
+                'isAscending': '',
+                'searchModes': [
+                    2,
+                ],
+                'sort': 0,
+                'shopId': '',
+                'currentPage': 1,
+                'pageSize': 60,
+                'filterSpecialArea': False,
+                'searchSource': 1,
+                'warehouseIds': [],
+                'searchKeyNotCorrect': False,
+                'couponTemplateId': '',
+                'channelId': '',
+            },
+            'cityId': '701',
+            'userClassId': 1,
+            'userDisplayClass': 0,
+            'addressId': '',
+            'deviceType': 3,
+        },
+        'url': 'https://www.yijiupi.com/v54/ProductCategory/ListProductCategory',
+        'sepUrl': '/v54/ProductCategory/ListProductCategory'
+    }
+    get_data(**set3)

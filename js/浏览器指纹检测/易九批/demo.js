@@ -757,16 +757,14 @@ function sign(i, r, d, f) {
 }
 
 
-function setHeader(method, api, data, time){
+function setHeader(method, api, data, time) {
     const nonce = La()
-    const init_sign = method + api + Ra(JSON.stringify(data))
+    const init_sign = method + api + Ra(data)
     const hmac = sign(time, nonce, init_sign, time)
     return {
         'x-sign': hmac,
         'x-sign-nonce': nonce,
         'x-sign-timestamp': time,
         'x-sign-version': '1.0',
-        'data': init_sign
     }
 }
-
