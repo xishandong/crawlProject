@@ -11,13 +11,13 @@ def get_data(json_data, url, sepUrl):
         'Content-Type': 'application/json',
         'token': '',
     }
-    json_data = json_data
+    # 问题的关键是把中文好好处理!!
+    data = json.dumps(json_data, ensure_ascii=False, separators=(',', ':'))
     x_ = execjs.compile(open('demo.js', 'r', encoding='utf-8').read()) \
-        .call('setHeader', 'POST', sepUrl,
-              json.dumps(json_data, ensure_ascii=False, separators=(',', ':')), timestamp)
+        .call('setHeader', 'POST', sepUrl, data, timestamp)
     headers.update(x_)
     response = requests.post(url, headers=headers,
-                             data=json.dumps(json_data, ensure_ascii=False, separators=(',', ':')), impersonate='chrome110')
+                             data=data, impersonate='chrome110')
     print(response.json())
 
 
