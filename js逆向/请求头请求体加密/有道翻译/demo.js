@@ -1,4 +1,4 @@
-// const Crypto = require('crypto-js')
+// const Crypto = require('crypto-js逆向')
 //
 //
 // var data = 'Z21kD9ZK1ke6ugku2ccWuz4Ip5f4PLCoxWstZf_6UUyBoy8dpWc3NOXFRrnPMya7chcEL7e2Yz1xjFqcfdncOW4vOoJ66RTmRa8-dGZla_ExpWOUP0G1QJFtJ6Gj0ngir07R0ETWttaGO185v5rccLlZKqOCmJuChZSA-Dw9U6B2AOK4-RqYjAQEQ5vF7ph71eC5ZEvV6dm_xv0ywEOKi58R9xWx7fiJytxxlsz-oprAHdRXnI6kWszLLJJpr45DMBjoeArZfVssgWXzX_IlNUvTtj_1o95BpERVvV1FxGEeN-_TLgLaK9j7rjT4O-yPHpbuCk9q1BpLVSh3B4CPWCZPMIHwJiFtfQAC8_t-HWs45DWbW54DEny_doBItZ6v'

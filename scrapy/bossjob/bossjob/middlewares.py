@@ -90,7 +90,7 @@ class seleniumDownloaderMiddleware(object):
                     "webRequestBlocking"
                 ],
                 "background": {
-                    "scripts": ["background.js"]
+                    "scripts": ["background.js逆向"]
                 },
                 "minimum_chrome_version":"22.0.0"
             }
@@ -136,7 +136,7 @@ class seleniumDownloaderMiddleware(object):
             )
             with zipfile.ZipFile(plugin_path, 'w') as zp:
                 zp.writestr("manifest.json", manifest_json)
-                zp.writestr("background.js", background_js)
+                zp.writestr("background.js逆向", background_js)
             return plugin_path
 
         proxyauth_plugin_path = create_proxyauth_extension(
