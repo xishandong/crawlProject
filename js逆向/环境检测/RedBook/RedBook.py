@@ -4,6 +4,7 @@ import random
 import re
 import time
 from concurrent.futures import ThreadPoolExecutor
+from hashlib import md5
 from urllib.parse import urlencode
 
 import execjs
@@ -67,6 +68,7 @@ class RedBook:
                     if response.json().get('success'):
                         return response.json()
             except Exception as e:
+                print(e)
                 time.sleep(random.uniform(1, 5))
         return {'data': {}}
 
@@ -212,7 +214,7 @@ class RedBook:
             else:
                 video_url = None
             img_list = [pic.get('url') for pic in i.get('image_list', {})]
-            tag_list = i.get('tag_list')
+            tag_list = self.get_note_topic(note_id)
             count = i.get('interact_info')
             like_count = count.get('liked_count') if i.get('interact_info') else None
             share_count = count.get('share_count') if i.get('interact_info') else None
@@ -246,7 +248,7 @@ class RedBook:
         while continuations:
             continuation = continuations.pop()
             params = {
-                'page_size': '6',
+                'page_size': '20',
                 'sort': sorts[sort],
                 'page_id': id,
                 'cursor': continuation,
@@ -261,6 +263,64 @@ class RedBook:
             if data:
                 yield from self.get_topic_note(data)
             time.sleep(random.uniform(1, 5))
+
+    # 搜索话题，如果接口返回为空，可以将json_data修改为注释掉的，利用前端算法获取，不走后端api
+    def search_topic(self, topic: str):
+        # json_data = {
+        #     'keyword': '',
+        #     'suggest_topic_request': {
+        #         'title': '',
+        #         'desc': topic,
+        #     },
+        #     'page': {
+        #         'page_size': 30,
+        #         'page': 1,
+        #     },
+        # }
+        json_data = {
+            'keyword': topic,
+            'suggest_topic_request': {
+                'title': '',
+                'desc': topic,
+            },
+            'page': {
+                'page_size': 30,
+                'page': 1,
+            },
+        }
+        url = 'https://edith.xiaohongshu.com/web_api/sns/v1/search/topic'
+        path = '/web_api/sns/v1/search/topic'
+        resp = self.ajax_requests(url, path, json_data=json_data)
+        data = [{
+            'name': topic['name'],
+            'view_num': topic['view_num'],
+            'link': topic['link'],
+            'id': topic['link'].split('/')[-1].split('?')[0]
+        } for topic in resp['data']['topic_info_dtos']]
+        data.sort(key=lambda x: x['view_num'], reverse=True)
+        return data
+
+    # 获取帖子中的tag_list，这个id是可以获取tag下的帖子的id
+    def get_note_topic(self, note_id):
+        url = f'https://www.xiaohongshu.com/fe_api/burdock/v2/note/{note_id}/tags'
+        # 标准的md5算法
+        obj = md5()
+        obj.update(f'/fe_api/burdock/v2/note/{note_id}/tagsWSUDD'.encode('utf-8'))
+        self.headers['x-sign'] = 'X' + obj.hexdigest()
+        resp = requests.get(
+            url=url,
+            headers=self.headers,
+            cookies=self.cookies
+        ).json()
+        try:
+            data = [{
+                'name': topic['name'],
+                'link': topic['link'],
+                'id': topic['pageId']
+            } for topic in resp['data']]
+            return data
+        except KeyError:
+            raise KeyError(resp['msg'])
 
     # 搜索用户信息, 需要有cookie才可以使用
     def search_user(self, keyword):
@@ -433,6 +493,9 @@ class RedBook:
     def get_note(notes):
         for note in notes:
             id = note.get('note_id')
+            if note.get('hot_query'):
+                # 推荐热门搜搜
+                continue
             if note.get('note_card'):
                 id = note.get('id')
                 note = note.get('note_card')
@@ -468,7 +531,7 @@ class RedBook:
             user_id = note.get('user', {}).get('userid')
             like_count = note.get('likes')
             collected_count = note.get('collected_count')
-            img_list = [pic.get('url_size_large') for pic in note.get('image_list', {})]
+            img_list = [pic.get('url_size_large') for pic in note.get('images_list', {})]
             video_url = note.get('video_info', {}).get('url')
             item = {
                 'note_id': note_id,
@@ -518,10 +581,12 @@ if __name__ == '__main__':
     # items = red_book.get_note_comment('6429108000000000130020d2')
     # items = red_book.get_user_page('562f8c8ef53ee026a3c94b5e')
     # items = red_book.get_homepage()
-    items = red_book.search_notes('python')
-    # items = red_book.search_by_topic('61a47a521e0b95000105ddec')
-    for i in items:
-        print(i)
-        # RedBook.download(i['cover'])
-        break
-    # print(red_book.get_note_detail('64bf47e3000000001201a95c'))
+    # items = red_book.search_notes('iu')
+    # items = red_book.search_topic('iu')  # 5be1b807ad586500019ce2d8
+    # items = red_book.search_by_topic('5d39bbf46330d90001dc6000', 1)
+    # for i in items:
+    #     print(i)
+    # note = red_book.get_note_detail('64a8925600000000230358af')
+    # print(note)
+    # topic = red_book.get_note_topic('6326a0910000000008009209')
+    # print(topic)
