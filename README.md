@@ -149,6 +149,10 @@ _此项目将持续更新_
 
 （股东能干嘛？股东可以让作者开心一整天😊）
 
-[<img src="./README_img/wechatPay.JPG" alt="微信支付" style="zoom:50%;" />](https://space.bilibili.com/35242527)
+<div style='display:flex'>
+    <img src="./README_img/wechatPay.JPG" alt="微信支付" style="zoom:50%;" />
+    <img src="./README_img/alipay.JPG" alt="支付宝支付" style="zoom:30%;" />
+</div>
 
-[<img src="./README_img/alipay.JPG" alt="支付宝支付" style="zoom:30%;" />](https://space.bilibili.com/35242527)
+​    
+
