@@ -214,7 +214,7 @@ class BossJob:
         writer = DictWriter(fp, header)
         writer.writeheader()
         for job in islice(dataSet, saveCount):
-            job.requirement = ';'.join(job.requirement)
+            job['requirement'] = ';'.join(job['requirement'])
             writer.writerow(job)
 
     def update_cookie(self):
