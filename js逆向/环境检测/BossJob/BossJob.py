@@ -1,4 +1,6 @@
 import time
+from csv import DictWriter
+from itertools import islice
 from typing import Literal, Iterator, Union, Any
 from urllib.parse import urlparse, parse_qs
 
@@ -207,6 +209,13 @@ class BossJob:
 
     def save_job_list_to_csv(self, position: str, city: str, startPage: int = 1, saveCount: int = 100):
         dataSet: Iterator = self.search_job(position, city, startPage)
+        header = ['job_name', 'detail_url', 'pay', 'company_name', 'requirement']
+        fp = open(f'{position}-{city}.csv', 'w', encoding='utf-8', newline='')
+        writer = DictWriter(fp, header)
+        writer.writeheader()
+        for job in islice(dataSet, saveCount):
+            job.requirement = ';'.join(job.requirement)
+            writer.writerow(job)
 
     def update_cookie(self):
         __zp = self.js.call('r', self.seed, self.ts)
