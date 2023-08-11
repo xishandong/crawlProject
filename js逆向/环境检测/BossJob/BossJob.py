@@ -297,18 +297,33 @@ class BossJob:
 
     # 保存手机端搜索结果
     def save_job_list_to_csv(self, position: str, city: str, startPage: int = 1, saveCount: int = 100):
-        self.headers.update({
-            'user-agent': 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Mobile Safari/537.36',
-        })
         dataSet: Iterator = self.search_job_mobile(position, city, startPage)
 
         header = ['job_name', 'detail_url', 'pay', 'company_name', 'requirement']
-        fp = open(f'{position}-{city}.csv', 'w', encoding='utf-8', newline='')
+        fp = open(f'mobile-{position}-{city}.csv', 'w', encoding='utf-8', newline='')
         writer = DictWriter(fp, header)
         writer.writeheader()
 
         for job in islice(dataSet, saveCount):
             job['requirement'] = ';'.join(job['requirement'])
+            writer.writerow(job)
+
+    # 保存web端搜索结果
+    def save_job_list_to_csv_web(self, position: str, city: str, savePage: int = 1):
+        dataSet = self.search_job_web(position, city, savePage)
+
+        header = [
+            'jobName', 'encryptJobId', 'salaryDesc', 'jobLabels', 'skills', 'jobExperience',
+            'jobDegree', 'cityName', 'brandName', 'brandScaleName', 'welfareList', 'brandIndustry'
+        ]
+        fp = open(f'web-{position}-{city}.csv', 'w', encoding='utf-8', newline='')
+        writer = DictWriter(fp, header)
+        writer.writeheader()
+
+        for job in dataSet:
+            job['jobLabels'] = ';'.join(job['jobLabels'])
+            job['skills'] = ';'.join(job['skills'])
+            job['welfareList'] = ';'.join(job['welfareList'])
             writer.writerow(job)
 
     # 更新cookie
@@ -400,9 +415,10 @@ if __name__ == '__main__':
     # print(detail)
     # 保存数据
     # boss.save_job_list_to_csv('python', '上海', saveCount=20)
+    boss.save_job_list_to_csv_web('python', '上海', 2)
     # web搜索
     # items = boss.search_job_web('python', '上海', 5)
     # mobile搜搜
-    items = boss.search_job_mobile('python', '上海')
-    for item in items:
-        print(item)
+    # items = boss.search_job_mobile('python', '上海')
+    # for item in items:
+    #     print(item)
