@@ -138,3 +138,17 @@ _此项目将持续更新_
 | 难度标识 | 项目名 | 补充                                                         |
 | -------- | ------ | ------------------------------------------------------------ |
 | 大地骑士 | 易九批 | 首先是加密请求体，其次是tls指纹检测，目前使用第三方库过了主页请求 |
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=xishandong/crawlProject&Date)](https://api.star-history.com/svg?repos=xishandong/crawlProject&Date)
+
+## 赞助
+
+如果你认为本仓库对你学习爬虫和逆向有所帮助，欢迎赞助作者，成为我们的股东之一！！
+
+（股东能干嘛？股东可以让作者开心一整天😊）
+
+[<img src="./README_img/wechatPay.JPG" alt="微信支付" style="zoom:50%;" />](https://space.bilibili.com/35242527)
+
+[<img src="./README_img/alipay.JPG" alt="支付宝支付" style="zoom:30%;" />](https://space.bilibili.com/35242527)
