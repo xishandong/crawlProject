@@ -150,8 +150,8 @@ _此项目将持续更新_
 （你的支持可以让作者开心一整天😊）
 
 <div style='display:flex'>
-    <img src="./README_img/wechatPay.JPG" alt="微信支付" style="zoom:50%;" />
-    <img src="./README_img/alipay.JPG" alt="支付宝支付" style="zoom:30%;" />
+    <img src="./README_img/wechatPay.JPG" alt="微信支付" style="width: 250px;height: 250px;" />
+    <img src="./README_img/alipay.JPG" alt="支付宝支付" style="width: 250px;height: 250px;" />
 </div>
 
 ​    
