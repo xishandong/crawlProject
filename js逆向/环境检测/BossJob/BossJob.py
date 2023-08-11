@@ -1,7 +1,7 @@
 import time
 from csv import DictWriter
 from itertools import islice
-from typing import Literal, Iterator, Union, Any
+from typing import Literal, Iterator, Union
 from urllib.parse import urlparse, parse_qs
 
 import execjs
@@ -100,6 +100,7 @@ city_code_dict: dict = {'鞍山': 101070300, '阿拉善盟': 101081200, '安康'
 
 class BossJob:
     def __init__(self, js_name: str = ''):
+        self.isFirst: bool = True
         self.detailId: str = ''
         self.js_name: str = js_name
         self.seed: str = ''
@@ -116,7 +117,7 @@ class BossJob:
         self.cookies: dict = {
 
         }
-        self.js: Any = execjs.compile(open('demo.js', 'r', encoding='utf-8').read())
+        self.js = execjs.compile(open('demo.js', 'r', encoding='utf-8').read())
         self.stop: bool = False
         self.checkEnd: str = ''
 
@@ -139,19 +140,24 @@ class BossJob:
             raise Exception('超过5次也无法正常获取响应...')
 
     def first_get_seed(self, url: str, params: dict = None) -> Union[requests.Response, None]:
-        resp = self.ajax_request(url=url, params=params, cookies=self.cookies)
+        if self.isFirst:
+            resp = self.ajax_request(url=url, params=params)
+            self.isFirst = False
+        else:
+            resp = self.ajax_request(url=url, params=params, cookies=self.cookies)
         if resp.url == url:
-            print(resp.url)
+            print(f'=====本次没有更新cookie: {resp.url} =====')
             return resp
+        print(resp.url)
         parsedUrl = urlparse(resp.url)
         generatedDict = parse_qs(parsedUrl.query)
         self.seed = generatedDict['seed'][0]
         self.ts = generatedDict['ts'][0]
-        print(f'初始化seed:{self.seed}, ts:{self.ts}')
+        print(f'=====初始化seed:{self.seed}, ts:{self.ts} =====')
         name = generatedDict['name'][0]
         if self.js_name != name:
             self.js_name = name
-            print(f"这次的js名称 -----> {name}")
+            print(f"=====这次的js名称 -----> {name} =====")
             resp = self.ajax_request(f'https://www.zhipin.com/web/common/security-js/{self.js_name}.js').text
             resp_ = resp.split('module,')
             resp = ''
@@ -205,6 +211,11 @@ class BossJob:
         tree = etree.HTML(resp.text)
         texts = tree.xpath('//div[@class="detail-content"]//text()')
         textList: list = [i.strip() for i in texts if i.strip()]
+        if not textList:
+            print('===== 重置cookie获取详情页 =====')
+            self.isFirst = True
+            time.sleep(5)
+            return self.get_job_details_bt_url(url)
         return '\n'.join(textList)
 
     def save_job_list_to_csv(self, position: str, city: str, startPage: int = 1, saveCount: int = 100):
@@ -242,8 +253,11 @@ class BossJob:
 
 if __name__ == '__main__':
     boss = BossJob('a88e8dab')
-    detail = boss.get_job_details_bt_url('https://www.zhipin.com/job_detail/fc823036861698e10nF42NW0GVo~.html')
-    print(detail)
-    # items = boss.search_job('python', '上海')
-    # for item in items:
-    #     print(item)
+    # detail = boss.get_job_details_bt_url('https://www.zhipin.com/job_detail/fc823036861698e10nF42NW0GVo~.html')
+    # print(detail)
+    # boss.save_job_list_to_csv('python', '上海', saveCount=20)
+    items = boss.search_job('python', '上海')
+    for item in items:
+        print(item)
+        print(boss.get_job_details_bt_url(item['detail_url']))
+        time.sleep(10)
