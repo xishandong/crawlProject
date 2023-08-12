@@ -10,7 +10,7 @@ from lxml import etree
 from tqdm import tqdm
 
 # ip代理信息
-from boss.Proxy_info import proxies
+from boss.Proxy_info import proxies, get_api
 
 # 类型控制
 Accept = Literal['json', 'text', 'contents']
@@ -133,6 +133,11 @@ class BossJob:
                                     proxies=self.proxy)
                 if resp.status_code == 200:
                     return resp
+                elif resp.status_code == 403:
+                    print("=====ip被封=====")
+                    self.show_pro(sleepTime)
+                    self.change_ip()
+                    continue
                 else:
                     print('HTTP Error: %s' % resp.status_code)
                     self.show_pro(sleepTime)
@@ -206,7 +211,8 @@ class BossJob:
                 elif not html and self.stop is False:
                     print('=====ip被封=====')
                     continuations.append(continuation)
-                    self.show_pro(sleepTime * 5)
+                    self.show_pro(sleepTime)
+                    self.change_ip()
                 else:
                     print(f'=====爬取{position}-{city}停止=====')
         else:
@@ -249,7 +255,8 @@ class BossJob:
                 # 出现ip被封，暂停一下
                 elif resp.json().get('code') == 5002:
                     print(f'{resp.json().get("message")}')
-                    self.show_pro(sleepTime * 5)
+                    self.show_pro(sleepTime)
+                    self.change_ip()
                     continue
                 # 得到数据
                 searchData = resp.json().get('zpData', {}).get('jobList')
@@ -392,6 +399,12 @@ class BossJob:
             }
 
     @staticmethod
+    def change_ip():
+        # get_api是自己需要封装的更换ip的函数，若不使用代理可直接将此函数更换为休眠或注释掉即可
+        changIpMsg = get_api().json()['msg']
+        print('=====更换IP信息: %s'.format(changIpMsg))
+
+    @staticmethod
     # 展示休息进度条
     def show_pro(t: int, isOpen: bool = True):
         time.sleep(1)
@@ -407,7 +420,7 @@ class BossJob:
 
 
 if __name__ == '__main__':
-    boss = BossJob('a88e8dab', proxy=proxies)
+    boss = BossJob('7c0225ec', proxy=proxies)
     # 通过url获取详情页
     # detail = boss.get_job_details_bt_url('https://www.zhipin.com/job_detail/fc823036861698e10nF42NW0GVo~.html')
     # 通过加密id获取详情页
@@ -415,10 +428,10 @@ if __name__ == '__main__':
     # print(detail)
     # 保存数据
     # boss.save_job_list_to_csv('python', '上海', saveCount=20)
-    boss.save_job_list_to_csv_web('python', '上海', 2)
+    # boss.save_job_list_to_csv_web('python', '上海', 2)
     # web搜索
-    # items = boss.search_job_web('python', '上海', 5)
+    items = boss.search_job_web('python', '上海', 5)
     # mobile搜搜
     # items = boss.search_job_mobile('python', '上海')
-    # for item in items:
-    #     print(item)
+    for item in items:
+        print(item)
