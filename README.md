@@ -142,7 +142,7 @@ _此项目将持续更新_
 
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=xishandong/crawlProject&Date)](https://api.star-history.com/svg?repos=xishandong/crawlProject&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=xishandong/crawlProject&Date)](https://star-history.com/#xishandong/crawlProject&Date)
 
 ## 赞助
 
