@@ -30,7 +30,7 @@ class Crawler:
             method: Method,
             params: dict = None,
             jsonData: dict = None,
-            retryTimes: int = 5,
+            retryTimes: int = 10,
             timeOut: int = 20,
             headers: dict = None,
             isSession: bool = False,
@@ -50,7 +50,7 @@ class Crawler:
                 )
                 return response
             except Exception as e:
-                sleep(uniform(1, 5))
+                sleep(uniform(5, 10))
                 print(
                     f"错误链接: {url}",
                     f"请求出现错误, 正在重试: {_}/{retryTimes}",

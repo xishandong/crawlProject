@@ -1,4 +1,5 @@
 import csv
+from concurrent.futures import ThreadPoolExecutor
 from itertools import islice
 from typing import TypedDict, Literal, Iterator
 
@@ -56,6 +57,49 @@ class Minmetals(Crawler):
             for notice in dataList:
                 yield notice
 
+    def save_multi(self, _data: Section, filePath: str = 'data.csv'):
+        if _data['lx'] in ['ZBGG', 'CQGG', 'ZGYS', 'ZBJG', 'ZBGS']:
+            url = 'https://ec.minmetals.com.cn/open/homepage/zbs/by-lx-page'
+        elif _data['lx'] in ['CGGG', 'XJCQGG', 'CGJG']:
+            url = 'https://ec.minmetals.com.cn/open/homepage/cgxj/by-lx-page'
+        else:
+            url = 'https://ec.minmetals.com.cn/open/homepage/jps/by-lx-page'
+        key = self.get_public_key()
+
+        def get_data_list(_url: str, page: int):
+            _data['pageIndex'] = page
+            par = getParams(_data, key)
+            json_data = {
+                'param': par
+            }
+            resp: dict = self.ajax_requests(
+                url=url,
+                method='post',
+                headers=self.headers,
+                jsonData=json_data
+            ).json()
+            dataList: list = resp.get('list', [])
+            fieldnames = dataList[0].keys()
+            if page == 1:
+                with open(filePath, 'w', newline='', encoding='utf-8') as file:
+                    writer = csv.DictWriter(file, fieldnames)
+                    writer.writeheader()
+            with open(filePath, mode="a", newline="", encoding='utf-8') as file:
+                writer = csv.DictWriter(file, fieldnames=fieldnames)
+                writer.writerows(dataList)
+            print(f'写入第{page}页数据')
+
+        get_data_list(url, 1)
+
+        with ThreadPoolExecutor(max_workers=20) as executor:
+            futures = []
+            for nowPage in range(2, 1000):
+                future = executor.submit(get_data_list, url, nowPage)
+                futures.append(future)
+            for future in futures:
+                future.result()
+            executor.shutdown()
+
     def get_details(self, id: str, lx: purchase):
         params = {'id': id}
         if lx in ['ZBGG', 'CQGG', 'ZGYS', 'ZBJG', 'ZBGS']:
@@ -79,7 +123,7 @@ class Minmetals(Crawler):
         ).json()
         print(resp)
 
-    def save_csv(self, _data: Section, count: int = 100, filePath='data.csv') -> None:
+    def save_csv(self, _data: Section, count: int = 100, filePath: str = 'data.csv') -> None:
         dataIter: Iterator = self.announcement(_data)
         datas = list(islice(dataIter, count))
         # 写入CSV文件
@@ -107,12 +151,11 @@ if __name__ == '__main__':
         "inviteMethod": "",
         "businessClassfication": "",
         "mc": "",
-        "lx": "XJCQGG",
+        "lx": "ZBGG",
         "dwmc": "",
         "pageIndex": 1
     }
-    mine.get_details('20230800015', 'XJCQGG')
-    # mine.save_csv(data)
+    mine.save_multi(data)
     # items = mine.announcement(data)
     # for item in items:
     #     print(item)
