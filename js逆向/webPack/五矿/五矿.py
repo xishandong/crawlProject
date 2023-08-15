@@ -57,7 +57,7 @@ class Minmetals(Crawler):
             for notice in dataList:
                 yield notice
 
-    def save_multi(self, _data: Section, filePath: str = 'data.csv'):
+    def save_multi(self, _data: Section, filePath: str = 'data.csv', totalPage: int = 1000):
         if _data['lx'] in ['ZBGG', 'CQGG', 'ZGYS', 'ZBJG', 'ZBGS']:
             url = 'https://ec.minmetals.com.cn/open/homepage/zbs/by-lx-page'
         elif _data['lx'] in ['CGGG', 'XJCQGG', 'CGJG']:
@@ -93,7 +93,7 @@ class Minmetals(Crawler):
 
         with ThreadPoolExecutor(max_workers=20) as executor:
             futures = []
-            for nowPage in range(2, 1000):
+            for nowPage in range(2, totalPage + 1):
                 future = executor.submit(get_data_list, url, nowPage)
                 futures.append(future)
             for future in futures:
