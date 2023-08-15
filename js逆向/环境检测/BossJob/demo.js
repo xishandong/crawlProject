@@ -55,7 +55,8 @@ screen = win.screen;
 // screen = proxy_(screen);
 localStorage = win.localStorage;
 // localStorage = proxy_(localStorage);
-
+sessionStorage = win.sessionStorage;
+// sessionStorage = proxy_(sessionStorage)
 window['outerHeighten'] = undefined;
 window['alert'] = function () {
 }
@@ -91,7 +92,7 @@ var Threshold = {
     maxValue: 0,
     minValue: -100,
     value: -24,
-    setValueAtTime: function(a, b, c){
+    setValueAtTime: function (a, b, c) {
         return Threshold
     }
 }
@@ -103,7 +104,7 @@ var knee = {
     maxValue: 40,
     minValue: 0,
     value: 30,
-    setValueAtTime: function(a, b, c){
+    setValueAtTime: function (a, b, c) {
         return knee
     }
 }
@@ -115,7 +116,7 @@ var ratio = {
     maxValue: 20,
     minValue: 1,
     value: 12,
-    setValueAtTime: function (a, b){
+    setValueAtTime: function (a, b) {
         return ratio
     }
 }
@@ -128,12 +129,12 @@ var attack = {
     maxValue: 20,
     minValue: 1,
     value: 12,
-    setValueAtTime: function (a, b){
+    setValueAtTime: function (a, b) {
         console.log(a, b)
         return attack
     }
 }
-attack = proxy_(attack)
+// attack = proxy_(attack)
 
 DynamicsCompressorNode = {
     name: 'DynamicsCompressorNode',
@@ -150,16 +151,17 @@ DynamicsCompressorNode = {
         }
     }
 }
-DynamicsCompressorNode = proxy_(DynamicsCompressorNode)
+// DynamicsCompressorNode = proxy_(DynamicsCompressorNode)
 
 AudioDestinationNode = {
     name: 'AudioDestinationNode',
 }
-AudioDestinationNode = proxy_(AudioDestinationNode)
+// AudioDestinationNode = proxy_(AudioDestinationNode)
 
-OfflineAudioContext = {
+OfflineAudioContexts = {
     name: 'OfflineAudioContext',
     createOscillator: function () {
+        console.log('createOscillator')
         return OscillatorNode
     },
     currentTime: 0,
@@ -168,13 +170,18 @@ OfflineAudioContext = {
     },
     destination: AudioDestinationNode
 }
-OfflineAudioContext = proxy_(OfflineAudioContext)
+// OfflineAudioContexts = proxy_(OfflineAudioContexts)
+
+
 window_new = {
-    SpeechSynthesisUtterance: function (){},
-    XMLHttpRequest: function (){},
-    SourceBuffer: function (){},
+    SpeechSynthesisUtterance: function () {
+    },
+    XMLHttpRequest: function () {
+    },
+    SourceBuffer: function () {
+    },
     OfflineAudioContext: function () {
-        return OfflineAudioContext
+        return OfflineAudioContexts
     },
     addEvenetListener: function () {
     },
@@ -501,4 +508,3 @@ function r(t, n) {
 }
 
 console.log(r('O0g/w1ePRcDnxW8L4GMvtxKUqEEjiTw9Qee2h3AO23A=', '1691716083134'))
-

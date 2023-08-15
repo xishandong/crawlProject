@@ -6,7 +6,7 @@ from typing import Literal, Iterator, Union
 from urllib.parse import urlparse, parse_qs
 
 import execjs
-import requests
+from curl_cffi import requests
 from lxml import etree
 from tqdm import tqdm
 
@@ -179,6 +179,8 @@ class BossJob:
                     print(f'====={resp.json().get("message")}=====')
                     self.show_pro(sleepTime)
                     self.change_ip()
+                    self.isFirst = True
+                    self.first_get_seed(self.apiList[3], params=params, isWeb=True)
                     continue
                 # 得到数据
                 searchData = resp.json().get('zpData', {}).get('jobList')
@@ -291,9 +293,9 @@ class BossJob:
             for i in range(len(resp_)):
                 resp += resp_[i]
                 if i == 0:
-                    resp += 'module,'
-                if i == 1:
                     resp += 'module_,'
+                if i == 1:
+                    resp += 'module,'
 
             with open('./jssss.js', 'w', encoding='utf-8') as f:
                 f.write(resp)
@@ -338,7 +340,7 @@ class BossJob:
 
 
 if __name__ == '__main__':
-    boss = BossJob('bf41467a', proxy=proxies)
+    boss = BossJob('260960ca', proxy=proxies)
     # 通过url获取详情页
     # detail = boss.get_job_details_bt_url('https://www.zhipin.com/job_detail/fc823036861698e10nF42NW0GVo~.html')
     # 通过加密id获取详情页
@@ -346,10 +348,10 @@ if __name__ == '__main__':
     # print(detail)
     # 保存数据
     # boss.save_job_list_to_csv('python', '上海', saveCount=20)
-    boss.save_job_list_to_csv_web('python', '上海', 2, 2)
+    # boss.save_job_list_to_csv_web('python', '上海', 2, 2)
     # web搜索
-    # items = boss.search_job_web('python', '上海', 1, 5)
+    items = boss.search_job_web('python', '上海', 1, 5)
     # mobile搜搜
     # items = boss.search_job_mobile('web', '上海')
-    # for item in items:
-    #     print(item)
+    for item in items:
+        print(item)
