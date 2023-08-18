@@ -166,6 +166,7 @@ graph TD;
 | 辉耀骑士 | redBook | x-s环境检测，需要自己把cookie和localstorage放到文件中 |
 | 辉耀骑士 | bossjob | __zp_s...__环境检测，每天js都不同，需要补一些环境，并且修改js，有一个module检测等...|
 | 辉耀骑士 | 猿人学2023第一题 | 魔改md5和aes 删除部分蜜罐，补充浏览器环境即可 |
+| 大地骑士 | 饿了么参数 | 通过playwright获取bx_et参数 |
 
 #### wasm加密
 
