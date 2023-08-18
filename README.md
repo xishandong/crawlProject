@@ -118,8 +118,6 @@ graph TD;
 | -------- | -------- | ------------------------------------------------------------ |
 | 骑士     | 邮政编码 | 通过地址查询邮政编码，使用同步方式，包含等待操作以及根据情况选择不同的表格，同时使用pandas对excel文件进行操作 |
 
-
-
 ## 进阶篇
 
 ### 综合案例
@@ -192,9 +190,10 @@ graph TD;
 （你的支持可以让作者开心一整天😊）
 
 <div style='display:flex'>
-    <img src="./README_img/wechatPay.JPG" alt="微信支付" style="width: 250px;height: 250px;" />
-    <img src="./README_img/alipay.JPG" alt="支付宝支付" style="width: 250px;height: 250px;" />
+    <img src="./README_img/wechatPay.JPG" alt="微信支付" style="width: 250px;height: 250px;objec-fit:contain" />
+    <img src="./README_img/alipay.JPG" alt="支付宝支付" style="width: 250px;height: 250px;objec-fit:contain" />
 </div>
+
 
 ​    
 
