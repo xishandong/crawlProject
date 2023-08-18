@@ -7,7 +7,6 @@ from urllib.parse import urlencode
 import requests
 from playwright.sync_api import sync_playwright
 
-# 需要自己指定绝对路径
 HTML_FILEPATH: str = 'file://D:/crawlProjects/饿了么/hello.html'
 
 
@@ -22,7 +21,11 @@ class EleMe:
         '_m_h5_tk': '',
         '_m_h5_tk_enc': '',
         'cookie2': '',
+        'USERID': ''
     }
+
+    def __init__(self):
+        self.stop_search: bool = False
 
     def ajax_request(self, url, params, retryTimes: int = 5) -> requests.Response:
         for _ in range(retryTimes):
@@ -75,7 +78,7 @@ class EleMe:
             continuation = continuations.pop()
             params = self.from_params(url, continuation)
             response = self.ajax_request(url, params=params)
-            data = response.json()['data']['data']
+            data = response.json().get('data', {}).get('data')
             homeRecommend = data.get('frontend_page_shop_list_recommend', {})
             rankId = homeRecommend.get('customized', {}).get('rankId')
             _items = homeRecommend.get('fields', {}).get('items')
@@ -83,6 +86,125 @@ class EleMe:
                 offset += len(_items)
                 continuations.append(self.next_home_recommend_query(rankId, offset))
             yield from self.parse_home_recommend(_items)
+
+    def get_search_results(self, keyword: str) -> Iterator:
+        url = 'https://waimai-guide.ele.me/h5/mtop.relationrecommend.tinyapprecommend.loginrecommend/1.0/5.0/'
+        data = self.first_search(keyword)
+        continuations: list[str] = [data]
+        offset = 0
+        page = 1
+        while continuations:
+            continuation = continuations.pop()
+            params = self.from_params(url, continuation)
+            response = self.ajax_request(url, params)
+            data = response.json().get('data', {}).get('result', {})
+            if isinstance(data, list):
+                data = data[0]
+            listItem = data.get('listItems', [])
+            rankId = data.get('pageInfo', {}).get('rankId')
+            if listItem and rankId and self.stop_search is False:
+                offset += len(listItem)
+                page += 1
+                continuations.append(self.next_search(keyword, offset, page, rankId))
+            yield from self.parse_search_data(listItem)
+
+    def parse_search_data(self, datas: list) -> Iterator:
+        for data in datas:
+            restaurant: dict = data.get('restaurant')
+            foods: list[dict] = data.get('foods', [])
+            title = data.get('title')
+            if title == '搜索结果较少，为你推荐更多内容':
+                self.stop_search: bool = True
+            if foods:
+                foods = [{
+                    'skuIdStr': food.get('skuIdStr'),
+                    'foodId': food.get('foodId'),
+                    'name': food.get('name'),
+                    'description': food.get('description'),
+                    'schemeId': food.get('schemeId'),
+                    'predictPrice': food.get('predictPrice'),
+                    'price': food.get('price'),
+                    'itemId': food.get('itemId'),
+                    'skuId': food.get('skuId'),
+                    'itemIdStr': food.get('itemIdStr'),
+                    'categoryId': food.get('categoryId'),
+                    'eleItemId': food.get('eleItemId')
+                } for food in foods]
+            if restaurant:
+                yield {
+                    'id': restaurant.get('id'),
+                    'name': restaurant.get('name'),
+                    'brandName': restaurant.get('brandName'),
+                    'brandId': restaurant.get('brandId'),
+                    'cover': restaurant.get('imagePath'),
+                    'rating': restaurant.get('rating'),
+                    'recentOrderNumDisplay': restaurant.get('recentOrderNumDisplay'),
+                    'averagePrice': restaurant.get('averagePrice'),
+                    'praiseCount': restaurant.get('praiseCount'),
+                    'targetTagPath': restaurant.get('targetTagPath'),
+                    'schemeId': restaurant.get('schemeId'),
+                    'openingHours': restaurant.get('openingHours'),
+                    'rules': restaurant.get('piecewiseAgentFee', {}).get('rules'),
+                    'foods': foods
+                }
+
+    def first_search(self, keywords: str) -> str:
+        params = {
+            "appId": "77",
+            "_input_charset": "UTF-8",
+            "_output_charset": "UTF-8",
+            "gatewayApiType": "mtop",
+            "x-ele-scene": "search",
+            "mtop_api_version": "1.0",
+            "platform": "999",
+            "alipayChannel": 1,
+            "sversion": "4.0",
+            "limit": 5,
+            "n": 5,
+            "page": 1,
+            "searchMode": 1,
+            "userId": self.cookies['USERID'],
+            "latitude": "28.864343",
+            "longitude": "105.407142",
+            "keyword": keywords,
+            "refer": "直接搜索"
+        }
+        data = {
+            "appId": "77",
+            "type": "originaljson",
+            "params": json.dumps(params, separators=(',', ':'), ensure_ascii=False),
+        }
+        return json.dumps(data, separators=(',', ':'), ensure_ascii=False)
+
+    def next_search(self, keywords: str, offset: int, page: int, rankId: str) -> str:
+        params = {
+            "appId": "77",
+            "_input_charset": "UTF-8",
+            "_output_charset": "UTF-8",
+            "gatewayApiType": "mtop",
+            "x-ele-scene": "search",
+            "mtop_api_version": "1.0",
+            "platform": "999",
+            "alipayChannel": 1,
+            "sversion": "4.0",
+            "limit": 5,
+            "n": 5,
+            "page": page,
+            "searchMode": 1,
+            "userId": self.cookies['USERID'],
+            "latitude": "28.864343",
+            "longitude": "105.407142",
+            "keyword": keywords,
+            "refer": "直接搜索",
+            "offset": offset,
+            "rankId": rankId,
+        }
+        data = {
+            "appId": "77",
+            "type": "originaljson",
+            "params": json.dumps(params, separators=(',', ':'), ensure_ascii=False),
+        }
+        return json.dumps(data, separators=(',', ':'), ensure_ascii=False)
 
     @staticmethod
     def first_home_recommend_query() -> str:
@@ -171,25 +293,28 @@ class EleMe:
     def parse_home_recommend(datas: list) -> Iterator:
         for data in datas:
             restaurant: dict = data.get('fields', {}).get('restaurant')
-            yield {
-                'id': restaurant.get('id'),
-                'name': restaurant.get('name'),
-                'brandName': restaurant.get('brandName'),
-                'brandId': restaurant.get('brandId'),
-                'cover': restaurant.get('imagePath'),
-                'rating': restaurant.get('rating'),
-                'recentOrderNumDisplay': restaurant.get('recentOrderNumDisplay'),
-                'averagePrice': restaurant.get('averagePrice'),
-                'praiseCount': restaurant.get('praiseCount'),
-                'targetTagPath': restaurant.get('targetTagPath'),
-                'schemeId': restaurant.get('schemeId'),
-                'openingHours': restaurant.get('openingHours'),
-                'rules': restaurant.get('piecewiseAgentFee', {}).get('rules')
-            }
+            if restaurant:
+                yield {
+                    'id': restaurant.get('id'),
+                    'name': restaurant.get('name'),
+                    'brandName': restaurant.get('brandName'),
+                    'brandId': restaurant.get('brandId'),
+                    'cover': restaurant.get('imagePath'),
+                    'rating': restaurant.get('rating'),
+                    'recentOrderNumDisplay': restaurant.get('recentOrderNumDisplay'),
+                    'averagePrice': restaurant.get('averagePrice'),
+                    'praiseCount': restaurant.get('praiseCount'),
+                    'targetTagPath': restaurant.get('targetTagPath'),
+                    'schemeId': restaurant.get('schemeId'),
+                    'openingHours': restaurant.get('openingHours'),
+                    'rules': restaurant.get('piecewiseAgentFee', {}).get('rules')
+                }
 
 
 if __name__ == '__main__':
     el = EleMe()
-    items = el.get_home_recommend()
+
+    items = el.get_search_results('麦当劳')
+    # items = el.get_home_recommend()
     for i in items:
         print(i)
