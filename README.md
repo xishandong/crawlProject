@@ -8,6 +8,9 @@
 
 练习笔记见**note.txt**
 
+目前包含的网站: xhs douyin weibo ins 五矿 公共交易 elm boss直聘 邮政编码 eair youdao翻译 wangyiyun音乐 天气网站 足球网站 指数数据网站
+易九批 图片网站 彩票网站 新闻 易车...
+
 _此项目将持续更新_
 
 **下面是个人对于网站爬取难度评级**
