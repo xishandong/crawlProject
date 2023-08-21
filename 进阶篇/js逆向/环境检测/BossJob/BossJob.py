@@ -31,7 +31,7 @@ class BossJob:
         self.apiList: list[str] = [
             'https://www.zhipin.com/wapi/zpgeek/mobile/search/joblist.json',  # 职位搜索页, 需要指定params
             'https://www.zhipin.com/job_detail/',  # 不需要指定params
-            f'https://www.zhipin.com/web/common/security-js/{self.js_name}.js',  # 动态加载js的链接
+            f'https://www.zhipin.com/web/common/security-js/',  # 动态加载js的链接
             'https://www.zhipin.com/wapi/zpgeek/search/joblist.json'  # web api
         ]
         # 请求头
@@ -115,7 +115,7 @@ class BossJob:
             # 模拟翻页
             while continuations:
                 continuation = continuations.pop()
-                resp = self.ajax_request('https://www.zhipin.com/wapi/zpgeek/mobile/search/joblist.json',
+                resp = self.ajax_request(self.apiList[0],
                                          params=continuation, cookies=self.cookies)
                 html = resp.json().get('zpData', {}).get('html')
                 # 存在新的帖子
@@ -285,7 +285,7 @@ class BossJob:
         if self.js_name != name:
             self.js_name = name
             print(f"=====这次的js名称 -----> {name} =====")
-            resp = self.ajax_request(f'https://www.zhipin.com/web/common/security-js/{self.js_name}.js').text
+            resp = self.ajax_request(self.apiList[2] + f'{self.js_name}.js').text
             resp_ = resp.split('module,')
             resp = ''
 
@@ -342,7 +342,7 @@ class BossJob:
 if __name__ == '__main__':
     boss = BossJob('260960ca', proxy=proxies)
     # 通过url获取详情页
-    # detail = boss.get_job_details_bt_url('https://www.zhipin.com/job_detail/fc823036861698e10nF42NW0GVo~.html')
+    # detail = boss.get_job_details_bt_url('')
     # 通过加密id获取详情页
     # detail = boss.get_job_details_by_id('05988daddc5b6afc1n1-3du1FVZW')
     # print(detail)

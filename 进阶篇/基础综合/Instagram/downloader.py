@@ -1,12 +1,20 @@
-import time
-import requests
 import re
+import time
+
+import requests
 
 cookie = {
-    你的cookies
+    # 你的cookies
 }
 
 PARAMS = r'("app_id":\s*"[^"]+")|("claim":\s*"[^"]+")|("csrf_token":\s*"[^"]+")'
+
+URLS = [
+    'https://www.instagram.com/',
+    'https://www.instagram.com/api/v1/users/web_profile_info/',
+    'https://www.instagram.com/api/v1/feed/user',
+    'https://www.instagram.com/api/v1/media/'
+]
 
 
 class Ins:
@@ -47,7 +55,7 @@ class Ins:
         :return: None
         """
         try:
-            response = self.session.get('https://www.instagram.com/', cookies=self.cookies, headers=self.headers)
+            response = self.session.get(URLS[0], cookies=self.cookies, headers=self.headers)
             matches = re.findall(PARAMS, response.text)
             result = [match[i] for match in matches for i in range(3) if match[i]]
             # get app_id
@@ -72,7 +80,7 @@ class Ins:
         params = {
             'username': userName,
         }
-        resp = self.ajax_request('https://www.instagram.com/api/v1/users/web_profile_info/', params=params)
+        resp = self.ajax_request(URLS[1], params=params)
         if resp:
             try:
                 # to avoid exception? Internet went wrong may return wrong information
@@ -106,7 +114,7 @@ class Ins:
         while continuations:
             continuation = continuations.pop()
             # url will change when second request and later
-            url = f'https://www.instagram.com/api/v1/feed/user/{temp}'
+            url = URLS[2] + f'/{temp}'
             resp = self.ajax_request(url, params=continuation)
             # no such user
             if not resp.get('user'):
@@ -131,7 +139,7 @@ class Ins:
             'permalink_enabled': 'false',
         }]
         # base url
-        url = f'https://www.instagram.com/api/v1/media/{id}/comments/'
+        url = URLS[3] + f'{id}/comments/'
         while continuations:
             continuation = continuations.pop()
             resp = self.ajax_request(url, params=continuation)
@@ -157,7 +165,7 @@ class Ins:
             else:
                 yield 'no comments or losing login cookies'
 
-    def get_child_comment(self, main_id,  id):
+    def get_child_comment(self, main_id, id):
         """
         get child of the comment by comment_id, only used in function get_comments().
         :param main_id: post id

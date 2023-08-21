@@ -9,6 +9,11 @@ from playwright.sync_api import sync_playwright
 
 HTML_FILEPATH: str = 'file://D:/crawlProjects/饿了么/hello.html'
 
+URLS = [
+    'https://waimai-guide.ele.me/h5/mtop.alsc.eleme.miniapp.homepagev1/1.0/5.0/',
+    'https://waimai-guide.ele.me/h5/mtop.relationrecommend.tinyapprecommend.loginrecommend/1.0/5.0/'
+]
+
 
 class EleMe:
     headers: dict = {
@@ -70,7 +75,7 @@ class EleMe:
         return params
 
     def get_home_recommend(self) -> Iterator:
-        url = 'https://waimai-guide.ele.me/h5/mtop.alsc.eleme.miniapp.homepagev1/1.0/5.0/'
+        url = URLS[0]
         data = self.first_home_recommend_query()
         continuations: list[str] = [data]
         offset: int = 0
@@ -88,7 +93,7 @@ class EleMe:
             yield from self.parse_home_recommend(_items)
 
     def get_search_results(self, keyword: str) -> Iterator:
-        url = 'https://waimai-guide.ele.me/h5/mtop.relationrecommend.tinyapprecommend.loginrecommend/1.0/5.0/'
+        url = URLS[1]
         data = self.first_search(keyword)
         continuations: list[str] = [data]
         offset = 0

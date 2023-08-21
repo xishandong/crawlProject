@@ -4,6 +4,12 @@ import time
 import execjs
 from curl_cffi import requests
 
+URLS = [
+    'https://www.yijiupi.com/v54/ProductCategory/ListCategoryTree',
+    'https://www.yijiupi.com/v54/PurchaseChannel/List',
+    'https://www.yijiupi.com/v54/ProductCategory/ListProductCategory'
+]
+
 
 def get_data(json_data, url, sepUrl):
     timestamp = str(int(time.time()))
@@ -33,7 +39,7 @@ if __name__ == '__main__':
             'addressId': '',
             'deviceType': 3,
         },
-        'url': 'https://www.yijiupi.com/v54/ProductCategory/ListCategoryTree',
+        'url': URLS[0],
         'sepUrl': '/v54/ProductCategory/ListCategoryTree'
     }
     # get_data(**set1)
@@ -45,7 +51,7 @@ if __name__ == '__main__':
             'addressId': '',
             'deviceType': 3,
         },
-        'url': 'https://www.yijiupi.com/v54/PurchaseChannel/List',
+        'url': URLS[1],
         'sepUrl': '/v54/PurchaseChannel/List'
     }
     # get_data(**set2)
@@ -81,7 +87,7 @@ if __name__ == '__main__':
             'addressId': '',
             'deviceType': 3,
         },
-        'url': 'https://www.yijiupi.com/v54/ProductCategory/ListProductCategory',
+        'url': URLS[2],
         'sepUrl': '/v54/ProductCategory/ListProductCategory'
     }
     get_data(**set3)

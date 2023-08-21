@@ -10,6 +10,16 @@ purchase = Literal['ZBGG', 'CQGG', 'ZGYS', 'ZBJG', 'ZBGS', 'CGGG', 'XJCQGG', 'CG
 Method = Literal['', '01', '02', '11', '12', '14', '22', '30', '0', '1']
 classification = Literal['', '100', '010', '001']
 
+URLS = [
+    'https://ec.minmetals.com.cn/open/homepage/zbs/by-lx-page',
+    'https://ec.minmetals.com.cn/open/homepage/cgxj/by-lx-page',
+    'https://ec.minmetals.com.cn/open/homepage/jps/by-lx-page',
+    'https://ec.minmetals.com.cn/open/homepage/zbs/',
+    'https://ec.minmetals.com.cn/open/homepage/cgs/',
+    'https://ec.minmetals.com.cn/open/homepage/jps/',
+    'https://ec.minmetals.com.cn/open/homepage/public'
+]
+
 
 class Section(TypedDict):
     inviteMethod: Method  # 采购方式/竞价方式
@@ -29,11 +39,11 @@ class Minmetals(Crawler):
 
     def announcement(self, _data: Section) -> Iterator:
         if _data['lx'] in ['ZBGG', 'CQGG', 'ZGYS', 'ZBJG', 'ZBGS']:
-            url = 'https://ec.minmetals.com.cn/open/homepage/zbs/by-lx-page'
+            url = URLS[0]
         elif _data['lx'] in ['CGGG', 'XJCQGG', 'CGJG']:
-            url = 'https://ec.minmetals.com.cn/open/homepage/cgxj/by-lx-page'
+            url = URLS[1]
         else:
-            url = 'https://ec.minmetals.com.cn/open/homepage/jps/by-lx-page'
+            url = URLS[2]
         key = self.get_public_key()
         continuations = [_data]
         while continuations:
@@ -59,11 +69,11 @@ class Minmetals(Crawler):
 
     def save_multi(self, _data: Section, filePath: str = 'data.csv', totalPage: int = 1000):
         if _data['lx'] in ['ZBGG', 'CQGG', 'ZGYS', 'ZBJG', 'ZBGS']:
-            url = 'https://ec.minmetals.com.cn/open/homepage/zbs/by-lx-page'
+            url = URLS[0]
         elif _data['lx'] in ['CGGG', 'XJCQGG', 'CGJG']:
-            url = 'https://ec.minmetals.com.cn/open/homepage/cgxj/by-lx-page'
+            url = URLS[1]
         else:
-            url = 'https://ec.minmetals.com.cn/open/homepage/jps/by-lx-page'
+            url = URLS[2]
         key = self.get_public_key()
 
         def get_data_list(_url: str, page: int):
@@ -103,13 +113,13 @@ class Minmetals(Crawler):
     def get_details(self, id: str, lx: purchase):
         params = {'id': id}
         if lx in ['ZBGG', 'CQGG', 'ZGYS', 'ZBJG', 'ZBGS']:
-            url = 'https://ec.minmetals.com.cn/open/homepage/zbs/' + lx.lower()
+            url = URLS[3] + lx.lower()
         elif lx in ['CGGG', 'XJCQGG', 'CGJG']:
             if lx == 'XJCQGG':
                 lx = 'CQGG'
-            url = 'https://ec.minmetals.com.cn/open/homepage/cgs/' + lx.lower()
+            url = URLS[4] + lx.lower()
         else:
-            url = 'https://ec.minmetals.com.cn/open/homepage/jps/' + lx.lower()
+            url = URLS[5] + lx.lower()
         key = self.get_public_key()
         par = getParams(params, key)
         json_data = {
@@ -136,7 +146,7 @@ class Minmetals(Crawler):
         print("CSV文件写入完成。")
 
     def get_public_key(self) -> str:
-        url = 'https://ec.minmetals.com.cn/open/homepage/public'
+        url = URLS[6]
         response = self.ajax_requests(
             url=url,
             method='post',

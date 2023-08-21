@@ -1,6 +1,5 @@
 import csv
 import time
-from itertools import islice
 
 import requests
 
@@ -23,7 +22,8 @@ class Douyin:
             'https://www.douyin.com/aweme/v1/web/comment/list/reply/',
             'https://www.douyin.com/aweme/v1/web/general/search/single/',
             'https://www.douyin.com/aweme/v1/web/hot/search/list/',
-            'https://www.douyin.com/aweme/v1/web/discover/search/'
+            'https://www.douyin.com/aweme/v1/web/discover/search/',
+            'https://www.douyin.com/aweme/v1/web/hot/search/list/'
         ]
 
     # 用于发送请求，设置了5次重试，一般情况如果可以获取数据5次重试就足够了
@@ -208,7 +208,7 @@ class Douyin:
 
     # 获取当前热搜
     def get_hotSearch(self):
-        res = requests.get('https://www.douyin.com/aweme/v1/web/hot/search/list/', headers=self.headers).json()
+        res = requests.get(self.api[7], headers=self.headers).json()
         word_list = next(self.search_dir(res, 'word_list'))
         # 只爬取了热搜，如果想要其他信息可以自行找api接口
         for hotpoint in word_list:

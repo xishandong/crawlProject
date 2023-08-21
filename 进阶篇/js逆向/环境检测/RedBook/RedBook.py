@@ -26,6 +26,22 @@ import requests
     12. 搜索指定帖子
 '''
 
+URLS = [
+    'https://edith.xiaohongshu.com/api/sns/web/v1/homefeed',
+    'https://edith.xiaohongshu.com/api/sns/web/v1/user_posted',
+    'https://edith.xiaohongshu.com/api/sns/web/v1/user_posted',
+    'https://edith.xiaohongshu.com/api/sns/web/v1/search/notes',
+    'https://edith.xiaohongshu.com/api/sns/web/v1/feed',
+    'https://www.xiaohongshu.com/web_api/sns/v3/page/notes',
+    'https://edith.xiaohongshu.com/web_api/sns/v1/search/topic',
+    'https://www.xiaohongshu.com/fe_api/burdock/v2/note/',
+    'https://edith.xiaohongshu.com/api/sns/web/v1/intimacy/intimacy_list/search',
+    'https://www.xiaohongshu.com/user/profile/',
+    'https://edith.xiaohongshu.com/api/sns/web/v2/comment/page',
+    'https://edith.xiaohongshu.com/api/sns/web/v2/comment/sub/page',
+    'https://edith.xiaohongshu.com/api/sns/web/v1/note/'
+]
+
 
 class RedBook:
     def __init__(self, cookie=None):
@@ -85,7 +101,7 @@ class RedBook:
         # 动作链
         continuations = ['']
         e = "/api/sns/web/v1/homefeed"
-        url = 'https://edith.xiaohongshu.com/api/sns/web/v1/homefeed'
+        url = URLS[0]
         while continuations:
             # 模拟翻页
             continuation = continuations.pop()
@@ -116,7 +132,7 @@ class RedBook:
     def get_user_page(self, user_id):
         continuations = ['']
         e = '/api/sns/web/v1/user_posted?'
-        url = 'https://edith.xiaohongshu.com/api/sns/web/v1/user_posted'
+        url = URLS[1]
         while continuations:
             continuation = continuations.pop()
             params = {
@@ -138,7 +154,7 @@ class RedBook:
     def get_note_count(self, uid):
         continuations = ['']
         e = '/api/sns/web/v1/user_posted?'
-        url = 'https://edith.xiaohongshu.com/api/sns/web/v1/user_posted'
+        url = URLS[2]
         total = 0
         while continuations:
             continuation = continuations.pop()
@@ -173,7 +189,7 @@ class RedBook:
             "sort": sort[sorts],
             "note_type": types,
         }
-        url = 'https://edith.xiaohongshu.com/api/sns/web/v1/search/notes'
+        url = URLS[3]
         continuations = [json_data]
         while continuations:
             continuation = continuations.pop()
@@ -194,7 +210,7 @@ class RedBook:
         json_data = {
             'source_note_id': note_id,
         }
-        url = 'https://edith.xiaohongshu.com/api/sns/web/v1/feed'
+        url = URLS[4]
         e = '/api/sns/web/v1/feed'
         # 发送请求
         resp = self.ajax_requests(url=url, path=e, json_data=json_data)
@@ -243,7 +259,7 @@ class RedBook:
     def search_by_topic(self, id, sort=0):
         continuations = ['']
         sorts = ['hot', 'time']
-        url = 'https://www.xiaohongshu.com/web_api/sns/v3/page/notes'
+        url = URLS[5]
         e = '/web_api/sns/v3/page/notes'
         while continuations:
             continuation = continuations.pop()
@@ -266,17 +282,6 @@ class RedBook:
 
     # 搜索话题，如果接口返回为空，可以将json_data修改为注释掉的，利用前端算法获取，不走后端api
     def search_topic(self, topic: str):
-        # json_data = {
-        #     'keyword': '',
-        #     'suggest_topic_request': {
-        #         'title': '',
-        #         'desc': topic,
-        #     },
-        #     'page': {
-        #         'page_size': 30,
-        #         'page': 1,
-        #     },
-        # }
         json_data = {
             'keyword': topic,
             'suggest_topic_request': {
@@ -288,7 +293,7 @@ class RedBook:
                 'page': 1,
             },
         }
-        url = 'https://edith.xiaohongshu.com/web_api/sns/v1/search/topic'
+        url = URLS[6]
         path = '/web_api/sns/v1/search/topic'
         resp = self.ajax_requests(url, path, json_data=json_data)
         data = [{
@@ -302,7 +307,7 @@ class RedBook:
 
     # 获取帖子中的tag_list，这个id是可以获取tag下的帖子的id
     def get_note_topic(self, note_id):
-        url = f'https://www.xiaohongshu.com/fe_api/burdock/v2/note/{note_id}/tags'
+        url = URLS[7] + f'{note_id}/tags'
         # 标准的md5算法
         obj = md5()
         obj.update(f'/fe_api/burdock/v2/note/{note_id}/tagsWSUDD'.encode('utf-8'))
@@ -326,7 +331,7 @@ class RedBook:
     def search_user(self, keyword):
         if self.flag:
             e = '/api/sns/web/v1/intimacy/intimacy_list/search'
-            url = 'https://edith.xiaohongshu.com/api/sns/web/v1/intimacy/intimacy_list/search'
+            url = URLS[8]
             continuations = ['1']
             page = 1
             while continuations:
@@ -349,7 +354,7 @@ class RedBook:
     # 获取用户粉丝量，必须在登陆后才可以获取真实数量
     def get_fans(self, uid, retry_times=3):
         for _ in range(retry_times):
-            response = requests.get(f'https://www.xiaohongshu.com/user/profile/{uid}', cookies=self.cookies,
+            response = requests.get(URLS[9] + f'{uid}', cookies=self.cookies,
                                     headers=self.headers)
             fans = re.findall(r'上有(\d+)位粉丝', response.text)
             if fans:
@@ -363,7 +368,7 @@ class RedBook:
     def get_note_comment(self, note_id):
         continuations = ['']
         e = '/api/sns/web/v2/comment/page?'
-        url = 'https://edith.xiaohongshu.com/api/sns/web/v2/comment/page'
+        url = URLS[10]
         # 获取不到评论结束
         while continuations:
             continuation = continuations.pop()
@@ -385,7 +390,7 @@ class RedBook:
     # 模拟点击更多回复
     def more_comments(self, cursor, note_id, root_id):
         continuations = [cursor]
-        url = 'https://edith.xiaohongshu.com/api/sns/web/v2/comment/sub/page'
+        url = URLS[11]
         e = '/api/sns/web/v2/comment/sub/page'
         while continuations:
             continuation = continuations.pop()
@@ -483,7 +488,7 @@ class RedBook:
             'note_oid': note_id,
         }
         options = ['like', 'dislike']
-        url = f'https://edith.xiaohongshu.com/api/sns/web/v1/note/{options[option]}'
+        url = URLS[12] + f'{options[option]}'
         e = f'/api/sns/web/v1/note/{options[option]}'
         resp = self.ajax_requests(url=url, path=e, json_data=json_data)
         print(resp.get('msg'))

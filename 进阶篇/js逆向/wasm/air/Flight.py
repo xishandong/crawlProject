@@ -7,6 +7,12 @@ import execjs
 import prettytable as pt
 import requests
 
+URLS = [
+    'https://m.ceair.com/mapp/reserve/flightList?newParam=',
+    'https://m.ceair.com/m-base/sale/shopping',
+    'https://m.ceair.com/m-base/sale/getBasicData'
+]
+
 
 class CEAir:
     def __init__(self):
@@ -62,7 +68,7 @@ class CEAir:
             "flightDate": date, "carryChd": False, "carryInf": False, "productType": "CASH", "curIndex": 0
         }
         url = quote(json.dumps(data, separators=(',', ':')))
-        url = 'https://m.ceair.com/mapp/reserve/flightList?newParam=' + url
+        url = URLS[0] + url
         self.headers.update({
             'Accept': 'application/json, text/plain, */*',
             'Accept-Language': 'zh-CN,zh;q=0.9',
@@ -99,7 +105,7 @@ class CEAir:
         json_data = {
             'req': enc
         }
-        resp = self.ajax_request(url='https://m.ceair.com/m-base/sale/shopping', json_data=json_data)
+        resp = self.ajax_request(url=URLS[1], json_data=json_data)
         data = resp['data'].get('flights') if resp['data'] else None
         if data:
             self.print_flights(list(self.process_json(data)))
@@ -214,7 +220,7 @@ class CEAir:
                     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36',
                 }
                 resp = \
-                    requests.post('https://m.ceair.com/m-base/sale/getBasicData', headers=headers,
+                    requests.post(URLS[2], headers=headers,
                                   json=json_data).json()[
                         'data']['Data']['CityList']
                 if resp:
