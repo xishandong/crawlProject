@@ -1,10 +1,13 @@
-import os
-
 from playwright.sync_api import sync_playwright
 
-# 打开谷歌浏览器 我们需要将该路径下的快捷方式属性后的目标加上 --remote-debugging-port=9999端口号可改变，与下面创建浏览器的一致即可
-chrome_path = r"C:\Users\dongxishan\Desktop\chrome.lnk"
-os.startfile(chrome_path)
+import subprocess
+
+# 这个路径可以是Google浏览器的exe路径，也可以是快捷方式的路径
+chrome_path = r'"C:\Program Files\Google\Chrome\Application\chrome.exe"'
+debugging_port = "--remote-debugging-port=9999"
+
+command = f"{chrome_path} {debugging_port}"
+subprocess.Popen(command, shell=True)
 
 
 # 拦截请求
