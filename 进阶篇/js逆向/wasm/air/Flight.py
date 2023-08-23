@@ -6,30 +6,22 @@ from urllib.parse import quote
 import execjs
 import prettytable as pt
 import requests
-
-URLS = [
-    'https://m.ceair.com/mapp/reserve/flightList?newParam=',
-    'https://m.ceair.com/m-base/sale/shopping',
-    'https://m.ceair.com/m-base/sale/getBasicData'
-]
+from acw_tc_3 import acw_tc_v
 
 
 class CEAir:
     def __init__(self):
         self.headers = {
-            'Cache-Control': 'no-cache',
-            'Connection': 'keep-alive',
             'Origin': 'https://m.ceair.com',
-            'Accept': 'application/json, text/plain, */*',
             'Accept-Language': 'zh-CN,zh;q=0.9',
             'Content-Type': 'application/json',
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36',
         }
         self.cookies = {
-            '_xid': 'CVUbYl9lz3HFU2na2mZviTHeQM%2BaLh%2FhZbEQ2Axq1MA%3D',
-            '_fmdata': 'uD5xda4HKJuu34L%2BVFA7yz9OQ7lR4yI6hmuL2aRyRiYEBkNHudAH0OBn7047MefSAP4CBQbxadfirurKjXlEhA%3D%3D',
-            'acw_tc': '76b20fe916907078124105028e350606ed4dea3f55c39eedf6c6dd2cd77ad3'
+            'acw_sc__v3': '',
+            'acw_tc': '',
         }
+
         self.session = requests.Session()
         self.flag = 1
 
@@ -47,7 +39,7 @@ class CEAir:
         resp = self.session.post(url=url, params=par, json=json_data, headers=self.headers, cookies=self.cookies)
         try:
             data = resp.json()['res']
-            ctx = execjs.compile(open('demo.js', 'r', encoding='utf-8').read()).call('decrypto', data)
+            ctx = execjs.compile(open('./demo.js', 'r', encoding='utf-8').read()).call('decrypto', data)
             return json.loads(ctx)
         except requests.exceptions.JSONDecodeError:
             # 处理acw_sc
@@ -68,26 +60,15 @@ class CEAir:
             "flightDate": date, "carryChd": False, "carryInf": False, "productType": "CASH", "curIndex": 0
         }
         url = quote(json.dumps(data, separators=(',', ':')))
-        url = URLS[0] + url
+        url = 'https://m.ceair.com/mapp/reserve/flightList?newParam=' + url
         self.headers.update({
-            'Accept': 'application/json, text/plain, */*',
-            'Accept-Language': 'zh-CN,zh;q=0.9',
-            'Cache-Control': 'no-cache',
-            'Connection': 'keep-alive',
             'Content-Type': 'application/json',
             'M-CEAIR-ENCRYPTED': 'true',
             'Origin': 'https://m.ceair.com',
-            'Pragma': 'no-cache',
             'Referer': url,
-            'Sec-Fetch-Mode': 'cors',
-            'Sec-Fetch-Site': 'same-origin',
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36',
             'X-CEAIR-OS': 'M',
-            'app_token_key': '',
-            'sec-ch-ua': '"Chromium";v="112", "Google Chrome";v="112", "Not:A-Brand";v="99"',
-            'sec-ch-ua-mobile': '?0',
-            'sec-ch-ua-platform': '"Windows"',
-            'transactionId': '05202304231034048094',
+            'transactionId': '0520230802122637749',
         })
         json_data = {
             "currentQueryType": "FLIGHT_LIST", "currentSegIndex": 0, "carryChd": False, "carryInf": False,
@@ -101,11 +82,11 @@ class CEAir:
             "appVersion": "99.0.0", "transactionId": "05202304231034048094"
         }
         a = json.dumps(json_data, separators=(',', ':'))
-        enc = execjs.compile(open('demo.js', 'r', encoding='utf-8').read()).call('encrypt', a)
+        enc = execjs.compile(open('./demo.js', 'r', encoding='utf-8').read()).call('encrypt', a)
         json_data = {
             'req': enc
         }
-        resp = self.ajax_request(url=URLS[1], json_data=json_data)
+        resp = self.ajax_request(url='https://m.ceair.com/m-base/sale/shopping', json_data=json_data)
         data = resp['data'].get('flights') if resp['data'] else None
         if data:
             self.print_flights(list(self.process_json(data)))
@@ -128,7 +109,7 @@ class CEAir:
             print('acw_sc_v2 =', self.cookies[name[0]])
             print('====结束处理acw_sc_v2====')
         else:
-            item = self.acw_sc_v3(html)
+            item = self.acw_sc_v3()
             self.cookies['acw_tc'] = item[0]
             self.cookies['acw_sc__v3'] = item[1]
 
@@ -139,17 +120,19 @@ class CEAir:
         :param arg: 网页中获取到的实时参数
         :return: acw_sc_v2的生成值
         """
-        return execjs.compile(open('demo.js', 'r', encoding='utf-8').read()).call('getCookie', arg)
+        return execjs.compile(open('./demo.js', 'r', encoding='utf-8').read()).call('getCookie', arg)
 
-    @staticmethod
-    def acw_sc_v3(html):
-        print('====开始处理滑块====')
-        with open('slide.html', 'w', encoding='utf-8') as fp:
-            fp.write(html)
-        acw_tc = input('acw_tc: ')
-        acw_sc__v3: str = input('acw_sc__v3: ')
-        print('====结束处理滑块====')
-        return acw_tc, acw_sc__v3
+    def acw_sc_v3(self):
+        try:
+            print('====开始处理滑块====')
+            cookies = acw_tc_v()
+            acw_tc: str = cookies['acw_tc']
+            acw_sc__v3: str = cookies['acw_sc__v3']
+            print(f'acw_sc_v3: {acw_sc__v3}', f'acw_tc: {acw_tc}')
+            print('====结束处理滑块====')
+            return acw_tc, acw_sc__v3
+        except:
+            return self.acw_sc_v3()
 
     @staticmethod
     def process_json(flights):
@@ -220,7 +203,7 @@ class CEAir:
                     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36',
                 }
                 resp = \
-                    requests.post(URLS[2], headers=headers,
+                    requests.post('https://m.ceair.com/m-base/sale/getBasicData', headers=headers,
                                   json=json_data).json()[
                         'data']['Data']['CityList']
                 if resp:
@@ -232,18 +215,10 @@ class CEAir:
                 time.sleep(2)
 
 
-def check_value(value):
-    if not value:
-        return 'import sys\nprint("您的输入有误!退出程序...")\nsys.exit(1)'
-
-
 if __name__ == '__main__':
     flight = CEAir()
     while True:
         arr = input('输入到达城市: ')
-        # exec(check_value(arr))
         dep = input('输入出发城市: ')
-        # exec(check_value(dep))
-        date = input('输入出发时间: ')
-        # exec(check_value(date))
+        date = input('输入出发时间(20230820): ')
         flight.get_flight(arr=arr, dep=dep, date=date)
