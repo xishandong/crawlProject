@@ -6,14 +6,15 @@ from playwright.sync_api import sync_playwright
 # 存放滑块的页面
 FILEPATH = ''
 
+# 指定谷歌浏览器路径，以debug模式打开，如果已经打开了debug，下面四行代码可以注释掉
+# chrome_path = r'"C:\Program Files\Google\Chrome\Application\chrome.exe"'
+# debugging_port = "--remote-debugging-port=9999"
+#
+# command = f"{chrome_path} {debugging_port}"
+# subprocess.Popen(command, shell=True)
+
 
 def acw_tc_v() -> dict:
-    # 指定谷歌浏览器路径，以debug模式打开，如果已经打开了debug，下面四行代码可以注释掉
-    chrome_path = r'"C:\Program Files\Google\Chrome\Application\chrome.exe"'
-    debugging_port = "--remote-debugging-port=9999"
-
-    command = f"{chrome_path} {debugging_port}"
-    subprocess.Popen(command, shell=True)
     # 设置一个接受返回结果的
     # something: dict
 
@@ -23,7 +24,7 @@ def acw_tc_v() -> dict:
         for kv in cookies.split(';'):
             k = kv.split('=')[0].strip()
             v = kv.split('=')[1].strip()
-            # 接收值
+            # 接收值，例如something[k] = v
 
     with sync_playwright() as p:
         browser = p.chromium.connect_over_cdp("http://localhost:9999")
