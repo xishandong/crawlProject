@@ -10,6 +10,8 @@
 
 _此项目将持续更新_
 
+项目部分实战讲解见b站：https://space.bilibili.com/35242527/channel/collectiondetail?sid=1590251
+
 **下面是个人对于网站爬取难度评级**
 
 | 难度等级 | 表示   | 补充     |
