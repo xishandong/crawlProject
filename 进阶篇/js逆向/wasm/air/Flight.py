@@ -131,7 +131,7 @@ class CEAir:
             print(f'acw_sc_v3: {acw_sc__v3}', f'acw_tc: {acw_tc}')
             print('====结束处理滑块====')
             return acw_tc, acw_sc__v3
-        except:
+        except KeyError:
             return self.acw_sc_v3()
 
     @staticmethod
