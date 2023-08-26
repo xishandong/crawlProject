@@ -204,6 +204,3 @@ graph TD;
     <img src="./README_img/alipay.JPG" alt="支付宝支付" style="width: 250px;height: 250px;objec-fit:contain" />
 </div>
 
-
-​    
-
