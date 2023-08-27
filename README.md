@@ -137,6 +137,7 @@ graph TD;
 | 骑士     | 邮政编码                 | 通过地址查询邮政编码，使用同步方式，包含等待操作以及根据情况选择不同的表格，同时使用pandas对excel文件进行操作 | [点这里](https://github.com/xishandong/crawlProject/tree/main/%E8%87%AA%E5%8A%A8%E5%8C%96%E7%AF%87/playwright) |
 | 大骑士   | 采用本地浏览器进行反爬虫 | 我们使用自动化时有时会被检测，我们这里使用本地浏览器进行反爬虫，并且由于是本地浏览器，我们的session状态和cookie状态都是存在的，也就是说原本登录过的网站我们访问直接就是登录状态了，可以方便很多，不需要我们创建浏览器的上下文 | [点这里](https://github.com/xishandong/crawlProject/tree/main/%E8%87%AA%E5%8A%A8%E5%8C%96%E7%AF%87/playwright) |
 | 大地骑士 | 采集资料                 | 通过网站名采集网站的邮箱电话地址社交媒体链接，难点在于每个网站风格完全不一，所有数据也不一并且数量很大，写正则很不好写，处理异步也比较麻烦，仓库只列举了其中10个页面，需要编写者对正则以及异步playwright有一定的了解 | [点这里](https://github.com/xishandong/crawlProject/tree/main/%E8%87%AA%E5%8A%A8%E5%8C%96%E7%AF%87/playwright) |
+| 大骑士 | 反检测浏览器 | 通过大牛的js文件创建一个反检测的浏览器，可以绕过绝大部分的检测 |[点这里](https://github.com/xishandong/crawlProject/tree/main/%E8%87%AA%E5%8A%A8%E5%8C%96%E7%AF%87/playwright) |
 
 ## 进阶篇
 
@@ -209,6 +210,7 @@ graph TD;
 | -------- | ------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
 | 大骑士   | JD滑块 | 我们获取到图片之后可以使用ddddocr来进行识别滑块，然后生成轨迹发送请求即可，我们这里的轨迹采用大佬的写法，首先准备一条基准，从左往右手工滑完，然后一个抖动轨迹，之后拼接两个轨迹即可（不知道为什么我自己滑的轨迹验证都不通过，所以直接用了大佬的轨迹了） | [点这里](https://github.com/xishandong/crawlProject/tree/main/%E9%AA%8C%E8%AF%81%E7%A0%81%E7%AF%87/%E6%BB%91%E5%9D%97%E7%AF%87/JD%E6%BB%91%E5%9D%97) |
 | 大骑士 | 阿里226 | 此次更新playwright获取，比较简单 | [点这里](https://github.com/xishandong/crawlProject/tree/main/%E9%AA%8C%E8%AF%81%E7%A0%81%E7%AF%87/%E6%BB%91%E5%9D%97%E7%AF%87)|
+| 大骑士 | 飞瓜获取验证码滑块 | 此次更新playwright获取，比较简单|[点这里](https://github.com/xishandong/crawlProject/tree/main/%E9%AA%8C%E8%AF%81%E7%A0%81%E7%AF%87/%E6%BB%91%E5%9D%97%E7%AF%87) |
 
 ## Star History
 
@@ -224,4 +226,3 @@ graph TD;
     <img src="./README_img/wechatPay.JPG" alt="微信支付" style="width: 250px;height: 250px;objec-fit:contain" />
     <img src="./README_img/alipay.JPG" alt="支付宝支付" style="width: 250px;height: 250px;objec-fit:contain" />
 </div>
-

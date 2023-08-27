@@ -1,11 +1,5 @@
 const Module = require('./ddd.js')
 
-var res = 'yX67CAY2RrMSJ1TxneWBANxXBK5wL6Rvk2bDRa+DKUspUee9v69x1s3TH1rv8tP4cJl5aQImurVCCHIQM4kz9xljjBV922sd1uSCv9xjnAKFy0lD9G2yVHb3kXpNLrB0eu7ITdyjo0Dxa0STnuTci4Bhci2TJ5dpsC20pGvgCeravpF32+Y+HnKZHjQG9/4fuCyODs6yYY42eAo7RP78abnihlRmIxWVFbMTb/6SYtqEycGkUtWyB1bTrXl+lpMXlfOMllQj7nUwNaS3DKNL+c2FPxVrcpbwdHtqm2icFIJA3UFFOUn6VrucV2oLNgbWMr2rKK75fSQu+nvLIoVCbN0hU4U2ccgAXVS2p7ZrUVa3smdoTBj+AUVBWgTBl70du36fCmHPdjUrpoI4v0+sLtkOTrGhGKs8LX6Tu8Gd9mNAcLYpdZmgA2ndgtTlF7Up8lYJBsFKLrKurO0EVWqcWQ4rZSoesJ0bwXmIzikqq04xcTM61oe7VAKBd33KZXh0FJsP/rRMwtRFXuvvvcnfAGAhvfRWh+pzSdPULo3s0mtTbiKM5P3rabCzimEAGCFbKg8cCfiO+PakuqZlkxWj+MdAWV58xfFksTKSxdhzNeQ6WzKn4g/gZzxJ0mM2nrxQ'
-
-var input = '{"currentQueryType":"FLIGHT_LIST","currentSegIndex":0,"carryChd":false,"carryInf":false,"productCodes":[],"selectedRoutes":[],"productType":"CASH","routes":[{"arrCode":"BJS","depCode":"SHA","flightDate":"20230424","arrCodeType":"1","depCodeType":"1","depCityName":"上海","arrCityName":"北京","segIndex":0}],"tripType":"OW","cabinGrade":"","memberLabel":"","salesChannel":"7701","moduleX":"mShopping","os":"M","appVersion":"99.0.0","transactionId":"0520230421133633605"}'
-
-var arg1 = '1BD9F59BC7D673529D64C4F4285144E6AA4B3127';
-
 var k = [121, 96, 7, 103, 57, 95, 61, 124, 121, 96, 7, 103, 57, 95, 61, 124]
 function getCookie(arg1) {
     var _0x5e8b26 = '3000176000856006061501533003690027800375'
@@ -50,11 +44,6 @@ function decrypto(data) {
 function encrypt(data) {
     return wbsk_AES_cbc_encrypt_base64(data, k)
 }
-
-console.log(decrypto(res));
-console.log(encrypt(input))
-console.log(getCookie(arg1))
-
 function wbsk_AES_cbc_decrypt_base64(input, iv) {
     var tmp_input = base64ToArrayBuffer(input)
     var result = wbsk_AES_cbc_decrypt(tmp_input, tmp_input.length, iv, iv.length);

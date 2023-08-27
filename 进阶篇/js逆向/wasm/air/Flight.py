@@ -6,8 +6,8 @@ from urllib.parse import quote
 import execjs
 import prettytable as pt
 import requests
-
-from acw_tc_3 import get_226
+# 导入获取滑块请求信息的两个函数
+from acw_tc_3 import get_226, replace_info
 
 
 class CEAir:
@@ -20,7 +20,7 @@ class CEAir:
         }
         self.cookies = {
         }
-
+        # 如果不使用session那么就需要把服务器返回的cookie都提取出来然后放到self.cookies里面
         self.session = requests.Session()
         self.flag = 1
         self.get_acw_tc()
@@ -122,7 +122,7 @@ class CEAir:
             print('acw_sc_v2 =', self.cookies[name[0]])
             print('====结束处理acw_sc_v2====')
         else:
-            item = self.acw_sc_v3()
+            item = self.acw_sc_v3(html)
             par.update({
                 'u_atoken': item['t'],
                 'u_asession': item['csessionid'],
@@ -140,16 +140,19 @@ class CEAir:
         """
         return execjs.compile(open('./demo.js', 'r', encoding='utf-8').read()).call('getCookie', arg)
 
-    def acw_sc_v3(self):
+    def acw_sc_v3(self, html: str = ''):
         try:
             print('====开始处理滑块====')
+            if html:
+                replace_info(html)
             result = get_226()
             if result['code'] != 0:
                 raise '滑动失败'
             print(f'result: {result}')
             print('====结束处理滑块====')
             return result
-        except:
+        except Exception as e:
+            print(e)
             return self.acw_sc_v3()
 
     @staticmethod

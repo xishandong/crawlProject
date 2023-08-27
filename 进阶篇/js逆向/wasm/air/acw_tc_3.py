@@ -22,16 +22,28 @@ INTERRUPT_ROUTE = ''
 # 创建的ws链接
 WS_URL = 'http://localhost:your_port'
 
-
-pattern = re.compile(r'\((.*)\)', re.S)
-
 headers = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36',
 }
 
 
+def replace_info(html: str):
+    # 识别出requestInfo
+    pattern = re.compile(r'requestInfo\s*=\s*\{.*?};', re.S)
+    # 读取旧文件
+    with open(FILEPATH, 'r', encoding='utf-8') as f:
+        old_html = f.read()
+    # 从新html中查找info, 如果有就做替换，没有就保留
+    info = pattern.findall(html)[0]
+    if info:
+        new_html = pattern.sub(info, old_html)
+        with open(FILEPATH, 'w', encoding='utf-8') as f:
+            f.write(new_html)
+
+
 def get_226() -> dict:
     result: dict = {}
+    pattern = re.compile(r'\((.*)\)', re.S)
 
     def intercept_xhr(route: playwright.sync_api.Route):
         params = parse_qs(urlparse(route.request.url).query)
