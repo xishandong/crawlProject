@@ -46,6 +46,25 @@ graph TD;
     验证码篇-->滑块篇;
 ```
 
+> 项目所用到的第三方库
+> 
+ ```bash
+ pip install curl_cffi # 标准tls请求库
+ pip install lxml # xpath提取数据
+ pip install playwright # 自动化需要
+ pip install ddddocr # 识别验证码
+ pip install selenium # 自动化需要，推荐playwright
+ pip install scrapy # 爬虫框架
+ pip install pycryptodome # python标准密码库
+ pip install pyexecjs2 # python调用js代码
+ pip install m3u8 # 下载m3u8视频
+ pip install prettytable # 格式化输出
+ pip install tqdm # 进度条
+ npm install crypto-js/cryptojs # 二选一，js标准密码库
+ npm insatll jsdom # js模拟浏览器的dom和bom
+ npm insatll tough-cookie # 浏览器cookie
+```
+
 ## 基础篇
 
 ### request篇
