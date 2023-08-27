@@ -49,6 +49,7 @@ graph TD;
 > 项目所用到的第三方库
 > 
  ```bash
+ pip install requests # requests库，爬虫的开始
  pip install curl_cffi # 标准tls请求库
  pip install lxml # xpath提取数据
  pip install playwright # 自动化需要
