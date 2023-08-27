@@ -41,7 +41,7 @@ def run(playwright: Playwright) -> dict:
     page.get_by_role("link", name="手机登录").click()
     page.get_by_text("验证码登录").click()
     page.get_by_role("textbox", name="请输入绑定手机号码").click()
-    page.get_by_role("textbox", name="请输入绑定手机号码").fill("18608219667")
+    page.get_by_role("textbox", name="请输入绑定手机号码").fill("手机号")
     page.get_by_role("link", name="获取验证码").click()
     # 有可能出现两种id
     try:
