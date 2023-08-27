@@ -6,7 +6,8 @@ from urllib.parse import quote
 import execjs
 import prettytable as pt
 import requests
-from acw_tc_3 import acw_tc_v
+
+from acw_tc_3 import get_226
 
 
 class CEAir:
@@ -18,34 +19,45 @@ class CEAir:
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36',
         }
         self.cookies = {
-            'acw_sc__v3': '',
-            'acw_tc': '',
         }
 
         self.session = requests.Session()
         self.flag = 1
+        self.get_acw_tc()
 
-    def ajax_request(self, *, url, json_data) -> json:
+    def get_acw_tc(self):
+        resp = self.session.get('https://m.ceair.com/mapp/Home', headers=self.headers)
+        # acw_tc = resp.cookies.get('acw_tc')
+        # if acw_tc:
+        #     self.cookies['acw_tc'] = acw_tc
+
+    def ajax_request(self, *, url, json_data, params: dict) -> json:
         """
         # 发送请求
+        :param params:params参数
         :param url: api接口
         :param json_data: 表单信息
         :return: json数据
         """
         refer = execjs.compile(open('refer_1306.js', 'r', encoding='utf-8').read()).call('getRefer', json_data)
-        par = {
-            'refer__1036': refer
-        }
+        if not params:
+            par = {
+                'refer__1036': refer
+            }
+        else:
+            par = params
         resp = self.session.post(url=url, params=par, json=json_data, headers=self.headers, cookies=self.cookies)
+        # acw_sc_v3 = resp.cookies.get('acw_sc_v3')
+        # if acw_sc_v3:
+        #     self.cookies['acw_sc_v3'] = acw_sc_v3
         try:
             data = resp.json()['res']
             ctx = execjs.compile(open('./demo.js', 'r', encoding='utf-8').read()).call('decrypto', data)
             return json.loads(ctx)
         except requests.exceptions.JSONDecodeError:
             # 处理acw_sc
-            self.cookie_update(resp.text)
-            print('cookies更新完成')
-            return self.ajax_request(url=url, json_data=json_data)
+            par = self.cookie_update(resp.text, par)
+            return self.ajax_request(url=url, json_data=json_data, params=par)
 
     def get_flight(self, arr, dep, date):
         """
@@ -86,16 +98,17 @@ class CEAir:
         json_data = {
             'req': enc
         }
-        resp = self.ajax_request(url='https://m.ceair.com/m-base/sale/shopping', json_data=json_data)
+        resp = self.ajax_request(url='https://m.ceair.com/m-base/sale/shopping', json_data=json_data, params={})
         data = resp['data'].get('flights') if resp['data'] else None
         if data:
             self.print_flights(list(self.process_json(data)))
         else:
             print('没有这一天的航班信息!!或者输入了国家')
 
-    def cookie_update(self, html):
+    def cookie_update(self, html, par: dict):
         """
         处理acw_sc的cookie更新
+        :param par: params参数
         :param html: 网页源码
         :return: None
         """
@@ -110,8 +123,13 @@ class CEAir:
             print('====结束处理acw_sc_v2====')
         else:
             item = self.acw_sc_v3()
-            self.cookies['acw_tc'] = item[0]
-            self.cookies['acw_sc__v3'] = item[1]
+            par.update({
+                'u_atoken': item['t'],
+                'u_asession': item['csessionid'],
+                'u_asig': item['value'],
+                'u_aref': '123'
+            })
+        return par
 
     @staticmethod
     def acw_sc_v2(arg):
@@ -125,13 +143,13 @@ class CEAir:
     def acw_sc_v3(self):
         try:
             print('====开始处理滑块====')
-            cookies = acw_tc_v()
-            acw_tc: str = cookies['acw_tc']
-            acw_sc__v3: str = cookies['acw_sc__v3']
-            print(f'acw_sc_v3: {acw_sc__v3}', f'acw_tc: {acw_tc}')
+            result = get_226()
+            if result['code'] != 0:
+                raise '滑动失败'
+            print(f'result: {result}')
             print('====结束处理滑块====')
-            return acw_tc, acw_sc__v3
-        except KeyError:
+            return result
+        except:
             return self.acw_sc_v3()
 
     @staticmethod
@@ -217,8 +235,4 @@ class CEAir:
 
 if __name__ == '__main__':
     flight = CEAir()
-    while True:
-        arr = input('输入到达城市: ')
-        dep = input('输入出发城市: ')
-        date = input('输入出发时间(20230820): ')
-        flight.get_flight(arr=arr, dep=dep, date=date)
+    flight.get_flight(arr='shanghai', dep='beijing', date='20230829')
