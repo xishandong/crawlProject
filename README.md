@@ -138,7 +138,7 @@ graph TD;
 | 大骑士   | 采用本地浏览器进行反爬虫 | 我们使用自动化时有时会被检测，我们这里使用本地浏览器进行反爬虫，并且由于是本地浏览器，我们的session状态和cookie状态都是存在的，也就是说原本登录过的网站我们访问直接就是登录状态了，可以方便很多，不需要我们创建浏览器的上下文 | [点这里](https://github.com/xishandong/crawlProject/tree/main/%E8%87%AA%E5%8A%A8%E5%8C%96%E7%AF%87/playwright) |
 | 大地骑士 | 采集资料                 | 通过网站名采集网站的邮箱电话地址社交媒体链接，难点在于每个网站风格完全不一，所有数据也不一并且数量很大，写正则很不好写，处理异步也比较麻烦，仓库只列举了其中10个页面，需要编写者对正则以及异步playwright有一定的了解 | [点这里](https://github.com/xishandong/crawlProject/tree/main/%E8%87%AA%E5%8A%A8%E5%8C%96%E7%AF%87/playwright) |
 | 大骑士 | 反检测浏览器 | 通过大牛的js文件创建一个反检测的浏览器，可以绕过绝大部分的检测 |[点这里](https://github.com/xishandong/crawlProject/tree/main/%E8%87%AA%E5%8A%A8%E5%8C%96%E7%AF%87/playwright) |
-
+| 大地骑士 | 起点vip小说爬取 | 通过屏幕快照的方式绕过起点vip小说的css反爬，用到的知识点有：定位盒子，截图，滑动，处理边界，合并截图。此方案不是最优解，欢迎大家补充 |[点这里](https://github.com/xishandong/crawlProject/tree/main/%E8%87%AA%E5%8A%A8%E5%8C%96%E7%AF%87/playwright)  |
 ## 进阶篇
 
 ### 综合案例
