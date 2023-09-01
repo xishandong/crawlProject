@@ -6,16 +6,16 @@ delete __dirname
 
 
 const customCookies = [
-以字段方式，用等号和逗号分隔
-例：
-“a=123”，
-“b=123”
+// 以字段方式，用__等号__和__逗号__分隔
+// 例：
+// “a=123”,
+// “b=123”
 ];
 const customLocalStorage = {
-以参数方式，用冒号和逗号分隔
-例：
-a: ’123‘，
-b： ’456‘
+// 以参数方式，用__冒号__和__逗号__分隔
+// 例：
+// a: ’123‘,
+// b： ’456‘
 }
 const cookieJar = new CookieJar();
 customCookies.forEach(cookie => {
