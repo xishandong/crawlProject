@@ -34,6 +34,7 @@ graph TD;
     基础篇-->解析html以及正则篇;
     基础篇-->scrapy篇;
     基础篇 -->高性能异步爬虫;
+    基础篇-->feapder;
     自动化篇-->selenium
     自动化篇-->playwright;
     进阶篇-->综合案例;
@@ -57,6 +58,7 @@ graph TD;
  pip install ddddocr # 识别验证码
  pip install selenium # 自动化需要，推荐playwright
  pip install scrapy # 爬虫框架
+ pip install "feapder[all]" # 新一代爬虫框架
  pip install pycryptodome # python标准密码库
  pip install pyexecjs2 # python调用js代码
  pip install m3u8 # 下载m3u8视频
@@ -121,7 +123,7 @@ graph TD;
 ### feapder
 | 难度标识     | 项目名     | 补充                                                  | 快捷导航                                                                                            |
 |----------|---------|-----------------------------------------------------|-------------------------------------------------------------------------------------------------|
-| 辉耀骑士     | 小红书数据采集    | 使用air模式的feapder，自定义csv储存管道，未来会以更多模式改写，以及更多功能加入，还迎补充 | [点这里](https://github.com/xishandong/crawlProject/tree/main/) |
+| 辉耀骑士     | 小红书数据采集    | 使用air模式的feapder，自定义csv储存管道，未来会以更多模式改写，以及更多功能加入，还迎补充 | [点这里](https://github.com/xishandong/crawlProject/tree/main/feapder%E7%AF%87) |
 ## 自动化篇
 
 ### selenium
