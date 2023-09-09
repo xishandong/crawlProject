@@ -391,7 +391,7 @@ class RedBook:
     def more_comments(self, cursor, note_id, root_id):
         continuations = [cursor]
         url = URLS[11]
-        e = '/api/sns/web/v2/comment/sub/page'
+        e = '/api/sns/web/v2/comment/sub/page?'
         while continuations:
             continuation = continuations.pop()
             params = {
@@ -441,7 +441,7 @@ class RedBook:
                 sub_comment_cursor = comment.get('sub_comment_cursor')
                 note_id = note_id
                 root_comment_id = root_id
-                self.more_comments(sub_comment_cursor, note_id, root_comment_id)
+                yield from self.more_comments(sub_comment_cursor, note_id, root_comment_id)
             item = {
                 'target_comment': target_comment,
                 'id': id,
