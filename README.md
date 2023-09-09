@@ -118,6 +118,10 @@ graph TD;
 | 大骑士  | 多任务协程       | 基础   | [点这里](https://github.com/xishandong/crawlProject/tree/main/%E5%9F%BA%E7%A1%80%E7%AF%87/%E9%AB%98%E6%80%A7%E8%83%BD%E5%BC%82%E6%AD%A5%E7%88%AC%E8%99%AB) |
 | 大骑士  | 线程池应用       | 基础   | [点这里](https://github.com/xishandong/crawlProject/tree/main/%E5%9F%BA%E7%A1%80%E7%AF%87/%E9%AB%98%E6%80%A7%E8%83%BD%E5%BC%82%E6%AD%A5%E7%88%AC%E8%99%AB) |
 
+### feapder
+| 难度标识     | 项目名     | 补充                                                  | 快捷导航                                                                                            |
+|----------|---------|-----------------------------------------------------|-------------------------------------------------------------------------------------------------|
+| 辉耀骑士     | 小红书数据采集    | 使用air模式的feapder，自定义csv储存管道，未来会以更多模式改写，以及更多功能加入，还迎补充 | [点这里](https://github.com/xishandong/crawlProject/tree/main/) |
 ## 自动化篇
 
 ### selenium
