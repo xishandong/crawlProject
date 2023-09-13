@@ -183,7 +183,7 @@ graph TD;
 | 大地骑士 | wangyiyun音乐 | 实现全站数据爬取               | [点这里](https://github.com/xishandong/crawlProject/tree/main/%E8%BF%9B%E9%98%B6%E7%AF%87/js%E9%80%86%E5%90%91/%E8%AF%B7%E6%B1%82%E5%A4%B4%E8%AF%B7%E6%B1%82%E4%BD%93%E5%8A%A0%E5%AF%86) |
 | 大地骑士 | gds公共交易     | 混淆参数，需要找定位             | [点这里](https://github.com/xishandong/crawlProject/tree/main/%E8%BF%9B%E9%98%B6%E7%AF%87/js%E9%80%86%E5%90%91/%E8%AF%B7%E6%B1%82%E5%A4%B4%E8%AF%B7%E6%B1%82%E4%BD%93%E5%8A%A0%E5%AF%86) |
 | 大地骑士 | 某道翻译        | 请求加密响应解密，难度不大          | [点这里](https://github.com/xishandong/crawlProject/tree/main/%E8%BF%9B%E9%98%B6%E7%AF%87/js%E9%80%86%E5%90%91/%E8%AF%B7%E6%B1%82%E5%A4%B4%E8%AF%B7%E6%B1%82%E4%BD%93%E5%8A%A0%E5%AF%86) |
-
+| 大地骑士 | b站登录 | rsa加密密码，极验三代文字点选，文字点选部分可见验证码篇 | [点这里](https://github.com/xishandong/crawlProject/tree/main/%E8%BF%9B%E9%98%B6%E7%AF%87/js%E9%80%86%E5%90%91/%E8%AF%B7%E6%B1%82%E5%A4%B4%E8%AF%B7%E6%B1%82%E4%BD%93%E5%8A%A0%E5%AF%86)|
 #### webPack
 
 | 难度标识 | 项目名     | 补充                                               | 快捷导航                                                                                                                 |
@@ -192,14 +192,14 @@ graph TD;
 
 #### 环境检测
 
-| 难度标识 | 项目名                | 补充                                                       | 快捷导航                                                                                                                                              |
-|------|--------------------|----------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------|
-| 辉耀骑士 | redBook            | xhs x-s环境检测，需要自己把cookie和localstorage放到文件中                | [点这里](https://github.com/xishandong/crawlProject/tree/main/%E8%BF%9B%E9%98%B6%E7%AF%87/js%E9%80%86%E5%90%91/%E7%8E%AF%E5%A2%83%E6%A3%80%E6%B5%8B) |
-| 辉耀骑士 | bossjob            | __zp_s...__环境检测，每天js都不同，需要补一些环境，并且修改js，有一个module检测等...   | [点这里](https://github.com/xishandong/crawlProject/tree/main/%E8%BF%9B%E9%98%B6%E7%AF%87/js%E9%80%86%E5%90%91/%E7%8E%AF%E5%A2%83%E6%A3%80%E6%B5%8B) |
-| 辉耀骑士 | 猿人学2023第一题         | 魔改md5和aes 删除部分蜜罐，补充浏览器环境即可                               | [点这里](https://github.com/xishandong/crawlProject/tree/main/%E8%BF%9B%E9%98%B6%E7%AF%87/js%E9%80%86%E5%90%91/%E7%8E%AF%E5%A2%83%E6%A3%80%E6%B5%8B) |
-| 大地骑士 | 饿了么参数              | 通过playwright获取bx_et参数                                    | [点这里](https://github.com/xishandong/crawlProject/tree/main/%E8%BF%9B%E9%98%B6%E7%AF%87/js%E9%80%86%E5%90%91/%E7%8E%AF%E5%A2%83%E6%A3%80%E6%B5%8B) |
-| 辉耀骑士 | pdd的anti_content参数 | 这个不是补环境，是扣的算法，pdd不同站点其实加密大概差不多，有些对象的值有所差别而已，加密的主函数都是一个逻辑 | [点这里](https://github.com/xishandong/crawlProject/tree/main/%E8%BF%9B%E9%98%B6%E7%AF%87/js%E9%80%86%E5%90%91/%E7%8E%AF%E5%A2%83%E6%A3%80%E6%B5%8B) |
-
+| 难度标识 | 项目名                               | 补充                                                       | 快捷导航                                                                                                                                              |
+|------|-----------------------------------|----------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------|
+| 辉耀骑士 | redBook                           | xhs x-s环境检测，需要自己把cookie和localstorage放到文件中                | [点这里](https://github.com/xishandong/crawlProject/tree/main/%E8%BF%9B%E9%98%B6%E7%AF%87/js%E9%80%86%E5%90%91/%E7%8E%AF%E5%A2%83%E6%A3%80%E6%B5%8B) |
+| 辉耀骑士 | bossjob                           | __zp_s...__环境检测，每天js都不同，需要补一些环境，并且修改js，有一个module检测等...   | [点这里](https://github.com/xishandong/crawlProject/tree/main/%E8%BF%9B%E9%98%B6%E7%AF%87/js%E9%80%86%E5%90%91/%E7%8E%AF%E5%A2%83%E6%A3%80%E6%B5%8B) |
+| 辉耀骑士 | 猿人学2023第一题                        | 魔改md5和aes 删除部分蜜罐，补充浏览器环境即可                               | [点这里](https://github.com/xishandong/crawlProject/tree/main/%E8%BF%9B%E9%98%B6%E7%AF%87/js%E9%80%86%E5%90%91/%E7%8E%AF%E5%A2%83%E6%A3%80%E6%B5%8B) |
+| 大地骑士 | 饿了么参数                             | 通过playwright获取bx_et参数                                    | [点这里](https://github.com/xishandong/crawlProject/tree/main/%E8%BF%9B%E9%98%B6%E7%AF%87/js%E9%80%86%E5%90%91/%E7%8E%AF%E5%A2%83%E6%A3%80%E6%B5%8B) |
+| 辉耀骑士 | pdd的anti_content参数                | 这个不是补环境，是扣的算法，pdd不同站点其实加密大概差不多，有些对象的值有所差别而已，加密的主函数都是一个逻辑 | [点这里](https://github.com/xishandong/crawlProject/tree/main/%E8%BF%9B%E9%98%B6%E7%AF%87/js%E9%80%86%E5%90%91/%E7%8E%AF%E5%A2%83%E6%A3%80%E6%B5%8B) |
+| 大地骑士 | 更新boss直聘物品点选解ip封锁，坐标识别就随便在网上找了一个了 | 这个点选轨迹加密就是极验三代 | 更新在boss那个文件里面了                                                                                                                                    |
 #### wasm加密
 
 | 难度标识 | 项目名 | 补充                                                          | 快捷导航                                                                                                                  |
@@ -223,9 +223,9 @@ graph TD;
 | 大骑士  | 飞瓜获取验证码滑块 | 此次更新playwright获取，比较简单                                                                                                           | [点这里](https://github.com/xishandong/crawlProject/tree/main/%E9%AA%8C%E8%AF%81%E7%A0%81%E7%AF%87/%E6%BB%91%E5%9D%97%E7%AF%87)                      |
 
 ## 点选篇
-| 难度标识 | 项目名      | 补充                                                                               | 快捷导航                                                                                                                                             |
-|------|----------|----------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------|
-| 辉耀骑士 | 极验三代文字点选 | 我们根据请求顺序依次请求接口获取图片，获取到图片信息后送入识别接口获取点选坐标，获取到坐标后将坐标转化，送入js生成轨迹，得到轨迹后请求接口获取validate | [点这里](https://github.com/xishandong/crawlProject/tree/main/%E9%AA%8C%E8%AF%81%E7%A0%81%E7%AF%87) |
+| 难度标识 | 项目名    | 补充                                                                               | 快捷导航                                                                                                                                             |
+|------|--------|----------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------|
+| 辉耀骑士 | 极验三代点选 | 我们根据请求顺序依次请求接口获取图片，获取到图片信息后送入识别接口获取点选坐标，获取到坐标后将坐标转化，送入js生成轨迹，得到轨迹后请求接口获取validate | [点这里](https://github.com/xishandong/crawlProject/tree/main/%E9%AA%8C%E8%AF%81%E7%A0%81%E7%AF%87) |
 
 
 ## Star History

@@ -6,12 +6,13 @@ from typing import Literal, Iterator, Union
 from urllib.parse import urlparse, parse_qs
 
 import execjs
-from curl_cffi import requests
+import requests
 from lxml import etree
 from tqdm import tqdm
 
 # ip代理信息
-from boss.Proxy_info import proxies, get_api
+from Proxy_info import proxies, get_api
+from boss.点选 import BossSlide
 
 # 类型控制
 Accept = Literal['json', 'text', 'contents']
@@ -31,7 +32,7 @@ class BossJob:
         self.apiList: list[str] = [
             'https://www.zhipin.com/wapi/zpgeek/mobile/search/joblist.json',  # 职位搜索页, 需要指定params
             'https://www.zhipin.com/job_detail/',  # 不需要指定params
-            f'https://www.zhipin.com/web/common/security-js/',  # 动态加载js的链接
+            f'https://www.zhipin.com/web/common/security-js/{self.js_name}.js',  # 动态加载js的链接
             'https://www.zhipin.com/wapi/zpgeek/search/joblist.json'  # web api
         ]
         # 请求头
@@ -115,7 +116,7 @@ class BossJob:
             # 模拟翻页
             while continuations:
                 continuation = continuations.pop()
-                resp = self.ajax_request(self.apiList[0],
+                resp = self.ajax_request('https://www.zhipin.com/wapi/zpgeek/mobile/search/joblist.json',
                                          params=continuation, cookies=self.cookies)
                 html = resp.json().get('zpData', {}).get('html')
                 # 存在新的帖子
@@ -285,7 +286,7 @@ class BossJob:
         if self.js_name != name:
             self.js_name = name
             print(f"=====这次的js名称 -----> {name} =====")
-            resp = self.ajax_request(self.apiList[2] + f'{self.js_name}.js').text
+            resp = self.ajax_request(f'https://www.zhipin.com/web/common/security-js/{self.js_name}.js').text
             resp_ = resp.split('module,')
             resp = ''
 
@@ -297,7 +298,7 @@ class BossJob:
                 if i == 1:
                     resp += 'module,'
 
-            with open('jssss.js', 'w', encoding='utf-8') as f:
+            with open('./jssss.js', 'w', encoding='utf-8') as f:
                 f.write(resp)
 
     @staticmethod
@@ -321,28 +322,28 @@ class BossJob:
 
     @staticmethod
     def change_ip():
-        changIpMsg: str = get_api('GET', 'tps.kdlapi.com/api/changetpsip')['msg']
-        print(f'=====更换IP信息: {changIpMsg}')
+        BossSlide().verify()
 
     @staticmethod
     # 展示休息进度条
     def show_pro(t: int, isOpen: bool = True):
-        time.sleep(1)
-        if isOpen:
-            for _ in tqdm(
-                    range(t * 10),
-                    leave=False,
-                    colour='blue',
-                    desc='正在等待中...',
-                    ascii='*-'
-            ):
-                time.sleep(0.1)
+        pass
+        # time.sleep(1)
+        # if isOpen:
+        #     for _ in tqdm(
+        #             range(t * 10),
+        #             leave=False,
+        #             colour='blue',
+        #             desc='正在等待中...',
+        #             ascii='*-'
+        #     ):
+        #         time.sleep(0.1)
 
 
 if __name__ == '__main__':
-    boss = BossJob('260960ca', proxy=proxies)
+    boss = BossJob('8955eed0', proxy=proxies)
     # 通过url获取详情页
-    # detail = boss.get_job_details_bt_url('')
+    # detail = boss.get_job_details_bt_url('https://www.zhipin.com/job_detail/fc823036861698e10nF42NW0GVo~.html')
     # 通过加密id获取详情页
     # detail = boss.get_job_details_by_id('05988daddc5b6afc1n1-3du1FVZW')
     # print(detail)
@@ -350,7 +351,7 @@ if __name__ == '__main__':
     # boss.save_job_list_to_csv('python', '上海', saveCount=20)
     # boss.save_job_list_to_csv_web('python', '上海', 2, 2)
     # web搜索
-    items = boss.search_job_web('python', '上海', 1, 5)
+    items = boss.search_job_web('python', '上海', 1, 10)
     # mobile搜搜
     # items = boss.search_job_mobile('web', '上海')
     for item in items:
