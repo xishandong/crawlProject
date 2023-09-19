@@ -140,7 +140,7 @@ class WeiBo(Base):
             'uid': f'{id}',
         }
         # 获取第一次的containerid
-        response = get_container_id('https://m.weibo.cn/profile/info', )
+        response = get_container_id('https://m.weibo.cn/profile/info')
         match_obj = re.search(r'containerid=(\d+)_', response.get('data', {}).get('fans', ''))
         containerid = match_obj.group(1)
         params['containerid'] = containerid
@@ -149,17 +149,18 @@ class WeiBo(Base):
         data = response.get('data', {}).get('tabsInfo', {}).get('tabs')[-1].get('containerid')
         params['containerid'] = data
         # 获取第三次的containerid
-        response = get_container_id('https://m.weibo.cn/api/container/getIndex', )
+        response = get_container_id('https://m.weibo.cn/api/container/getIndex')
         # 获取到最终需要的相册参数
-        url = response.get("data", {}).get("cards", {})[0].get("scheme")
+        url = response.get("data", {}).get("scheme")
         url_query = urlparse(str(url)).query
         datas = parse_qs(url_query)
         params = {
-            'containerid': datas.get('containerid', [])[0],
-            'count': datas.get('count', [])[0],
-            'title': datas.get('title', [])[0],
+            'containerid': datas.get('containerid', [])[0] + '_-_photoall',
+            'count': 24,
+            'title': '照片墙',
             'luicode': datas.get('luicode', [])[0],
             'lfid': datas.get('lfid', [])[0],
+            'value': id
         }
         continuations = [params]
         while continuations:
@@ -279,7 +280,6 @@ class WeiBo(Base):
             if num % 100 == 0:
                 print(f'写入{num}条数据')
 
-    # 帖子详情
     def post_info(self, pid: Union[int, str]) -> dict:
         url = f'https://m.weibo.cn/detail/{pid}'
         response = self.ajax_requests(
@@ -347,7 +347,7 @@ class WeiBo(Base):
             'verified_reason': user.get('verified_reason'),
             'follow_count': user.get('follow_count'),
             'followers_count': user.get('followers_count'),
-            'gender': user.get('gender'),
+            'gender': user.get('gender')
         }
 
 
