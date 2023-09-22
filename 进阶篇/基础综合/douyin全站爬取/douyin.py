@@ -37,7 +37,7 @@ class Douyin:
         # 选填
         params['msToken'] = ''
         full_url = urlencode(params)
-        # 找到一个可以生成x-b的代码即可
+        # 找到一个可以生成x-b的代码即可, 注意: 仓库中的算法由https://github.com/B1gM8c/X-Bogus下载，大家可自行逆向或者支持作者
         xb = execjs.compile(open('x-b.js', 'r', encoding='utf-8').read()).call('sign', full_url, self.headers['user-agent'])
         params['X-Bogus'] = xb
         for _ in range(retry_times):
