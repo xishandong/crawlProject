@@ -1,11 +1,10 @@
 import csv
 import os
 import time
-from itertools import islice
 from urllib.parse import urlencode
 
 import execjs
-import requests
+from curl_cffi import requests
 
 
 class Douyin:
@@ -17,6 +16,7 @@ class Douyin:
             'pragma': 'no-cache',
             'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36',
         }
+        self.cookies = {}
         # 访问所需的api接口
         self.api = [
             'https://www.douyin.com/aweme/v1/web/aweme/post/',
@@ -27,30 +27,29 @@ class Douyin:
             'https://www.douyin.com/aweme/v1/web/hot/search/list/',
             'https://www.douyin.com/aweme/v1/web/discover/search/'
         ]
-        self.cookies = {
-
-        }
 
     # 用于发送请求，设置了5次重试，一般情况如果可以获取数据5次重试就足够了
     def ajax_requests(self, position, params, retry_times=5):
-        url = self.api[position]
-        # 选填
-        params['msToken'] = ''
-        full_url = urlencode(params)
-        # 找到一个可以生成x-b的代码即可, 注意: 仓库中的算法由https://github.com/B1gM8c/X-Bogus下载，大家可自行逆向或者支持作者
-        xb = execjs.compile(open('x-b.js', 'r', encoding='utf-8').read()).call('sign', full_url, self.headers['user-agent'])
-        params['X-Bogus'] = xb
         for _ in range(retry_times):
             try:
+                url = self.api[position]
+                # 选填
+                # params['msToken'] = ''
+                full_url = urlencode(params)
+                # 找到一个可以生成x-b的代码即可
+                xb = execjs.compile(open('x-b.js', 'r', encoding='utf-8').read()).call('sign', full_url,
+                                                                                       self.headers['user-agent'])
+                params['X-Bogus'] = xb
                 resp = requests.get(
                     url=url, headers=self.headers, params=params, timeout=10, cookies=self.cookies
                 ).json()
+                del params['X-Bogus']
                 # status_code是0的话访问就是成功的
                 if not resp['status_code']:
                     return resp
             except Exception as e:
                 print(e, f'retry_times:{_ + 1}:{retry_times}...')
-                time.sleep(10)
+                time.sleep(5)
 
     # 通过用户的加密id获取用户的信息
     # 今天这个接口1失效了，明天再试
@@ -69,18 +68,12 @@ class Douyin:
     # 通过用户加密的id获取用户发布的短视频或者图文帖子相关信息
     def get_user_post(self, sec_id):
         params = {
-            'device_platform': 'webapp',
-            'aid': '6383',
-            'channel': 'channel_pc_web',
-            'sec_user_id': sec_id,
-            'max_cursor': '0',
-            'locate_item_id': '7220335724376182050',
-            'locate_query': 'false',
-            'show_live_replay_strategy': '1',
-            'count': '20',
-            'publish_video_strategy_type': '2',
-            'pc_client_type': '1',
-            'cookie_enabled': 'true',
+            "device_platform": "webapp",
+            "aid": "6383",
+            "channel": "channel_pc_web",
+            "sec_user_id": sec_id,
+            "max_cursor": "0",
+            "count": "20",
         }
         continuations = [params]
         while continuations:
@@ -88,12 +81,11 @@ class Douyin:
             data = self.ajax_requests(0, continuation)
             # 模拟向下滑动
             if next(self.search_dir(data, 'has_more'), None):
-                params['max_cursor'] = next(self.search_dir(data, 'max_cursor'), None)
+                params['max_cursor'] = str(next(self.search_dir(data, 'max_cursor'), None))
                 continuations.append(params)
             for posts in self.search_dir(data, 'aweme_list'):
                 for post in posts:
                     yield from self.get_post(post)
-            time.sleep(.5)
 
     # 通过帖子id获取帖子的全部评论
     def get_comment_by_id(self, id):
@@ -112,18 +104,18 @@ class Douyin:
             if next(self.search_dir(data, 'has_more'), None):
                 params['cursor'] = next(self.search_dir(data, 'cursor'), None)
                 continuations.append(params)
-            for comment in data.get('comments'):
-                yield from self.get_comment(comment)
-                # 模拟点击更多回复
-                if comment['reply_comment_total'] > 0:
-                    more_comment_params = {
-                        'aid': '6383',
-                        'comment_id': comment['cid'],
-                        'cursor': '0',
-                        'count': '3',
-                    }
-                    yield from self.more_comments(more_comment_params)
-                time.sleep(.5)
+            if data.get('comments'):
+                for comment in data.get('comments'):
+                    yield from self.get_comment(comment)
+                    # 模拟点击更多回复
+                    if comment['reply_comment_total'] > 0:
+                        more_comment_params = {
+                            'aid': '6383',
+                            'comment_id': comment['cid'],
+                            'cursor': '0',
+                            'count': '3',
+                        }
+                        yield from self.more_comments(more_comment_params)
 
     # 点击更多回复触发的事件
     def more_comments(self, params):
@@ -214,7 +206,6 @@ class Douyin:
                 params['offset'] = next(self.search_dir(data, 'cursor'), None)
                 continuations.append(params)
             for user in data['user_list']:
-                # 今天这个接口失效了
                 yield from self.get_user_info(user.get('user_info'))
             time.sleep(.5)
 
@@ -399,12 +390,13 @@ class Douyin:
 
 if __name__ == '__main__':
     dou = Douyin()
-    # dou.save2csv(7246412694926937359)
+    # dou.save2csv(7279027457452150016)
+    # items = dou.get_comment_by_id('7279027457452150016')
     # items = dou.get_hotSearch()
     # items = dou.search_key('Jennie', 2)
-    # print(dou.get_user('MS4wLjABAAAA0fiq261i6th1gRCsGrZ6SRxCT9DdEz3aJ5nBRnR14N0'))
+    # items = dou.search_user('iu')
+    print(dou.get_user('MS4wLjABAAAA0fiq261i6th1gRCsGrZ6SRxCT9DdEz3aJ5nBRnR14N0'))
     items = dou.get_user_post('MS4wLjABAAAA0fiq261i6th1gRCsGrZ6SRxCT9DdEz3aJ5nBRnR14N0')
     for item in items:
-        # print(item)
-        dou.download(item)
-
+        print(item)
+        # dou.download(item)
