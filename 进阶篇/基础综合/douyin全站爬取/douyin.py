@@ -62,8 +62,7 @@ class Douyin:
         }
         # 用其他接口获取的用户信息
         data = self.ajax_requests(1, params)
-        print(data)
-        user = next(self.search_dir(data, 'author'), None)
+        user = next(self.search_dir(data, 'user'), None)
         if user:
             return next(self.get_user_info(user), None)
 
