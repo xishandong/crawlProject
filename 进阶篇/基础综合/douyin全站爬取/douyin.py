@@ -300,6 +300,11 @@ class Douyin:
         follower_count = user.get('follower_count')
         custom_verify = user.get('custom_verify')
         user_age = user.get('user_age')
+        city = user.get('city', '')
+        country = user.get('country', '')
+        district = user.get('district', '')
+        province = user.get('province', '')
+        school_name = user.get('school_name', '')
         yield {
             'sec_uid': sec_uid,
             'unique_id': unique_id,
@@ -310,7 +315,9 @@ class Douyin:
             'user_age': user_age,
             'following_count': following_count,
             'total_favorite': total_liked,
-            'follower_count': follower_count
+            'follower_count': follower_count,
+            'location': '|'.join([city, province, country, district]),
+            'school': school_name
         }
 
     # 获取评论内容
