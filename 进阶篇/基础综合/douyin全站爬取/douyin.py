@@ -1,6 +1,10 @@
 import csv
+import os
 import time
+from itertools import islice
+from urllib.parse import urlencode
 
+import execjs
 import requests
 
 
@@ -10,7 +14,6 @@ class Douyin:
             'authority': 'www.douyin.com',
             'referer': 'https://www.douyin.com/',
             'sec-fetch-site': 'same-origin',
-            'cookie': '',
             'pragma': 'no-cache',
             'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36',
         }
@@ -22,16 +25,25 @@ class Douyin:
             'https://www.douyin.com/aweme/v1/web/comment/list/reply/',
             'https://www.douyin.com/aweme/v1/web/general/search/single/',
             'https://www.douyin.com/aweme/v1/web/hot/search/list/',
-            'https://www.douyin.com/aweme/v1/web/discover/search/',
-            'https://www.douyin.com/aweme/v1/web/hot/search/list/'
+            'https://www.douyin.com/aweme/v1/web/discover/search/'
         ]
+        self.cookies = {
+
+        }
 
     # 用于发送请求，设置了5次重试，一般情况如果可以获取数据5次重试就足够了
     def ajax_requests(self, position, params, retry_times=5):
+        url = self.api[position]
+        # 选填
+        params['msToken'] = ''
+        full_url = urlencode(params)
+        # 找到一个可以生成x-b的代码即可
+        xb = execjs.compile(open('x-b.js', 'r', encoding='utf-8').read()).call('sign', full_url, self.headers['user-agent'])
+        params['X-Bogus'] = xb
         for _ in range(retry_times):
             try:
                 resp = requests.get(
-                    url=self.api[position], headers=self.headers, params=params, timeout=10
+                    url=url, headers=self.headers, params=params, timeout=10, cookies=self.cookies
                 ).json()
                 # status_code是0的话访问就是成功的
                 if not resp['status_code']:
@@ -49,7 +61,8 @@ class Douyin:
             'sec_user_id': sec_id,
         }
         # 用其他接口获取的用户信息
-        data = self.ajax_requests(0, params)
+        data = self.ajax_requests(1, params)
+        print(data)
         user = next(self.search_dir(data, 'author'), None)
         if user:
             return next(self.get_user_info(user), None)
@@ -208,7 +221,7 @@ class Douyin:
 
     # 获取当前热搜
     def get_hotSearch(self):
-        res = requests.get(self.api[7], headers=self.headers).json()
+        res = requests.get('https://www.douyin.com/aweme/v1/web/hot/search/list/', headers=self.headers).json()
         word_list = next(self.search_dir(res, 'word_list'))
         # 只爬取了热搜，如果想要其他信息可以自行找api接口
         for hotpoint in word_list:
@@ -339,8 +352,10 @@ class Douyin:
             'create_time': create_time
         }
 
-    # 下载某一个帖子内容
     def download(self, item):
+        folder_path = './Lib'
+        if not os.path.exists(folder_path):
+            os.makedirs(folder_path)
         for _ in range(5):
             try:
                 if item['type'] == 'photo':
@@ -349,14 +364,12 @@ class Douyin:
                         path = f'./Lib/{item["aweme_id"]}{"aa" + str(flag)}.jpg'
                         with open(path, 'wb') as fp:
                             fp.write(requests.get(url, headers=self.headers, timeout=10).content)
-                        print(path)
                         flag += 1
                     return True
                 else:
                     path = f'./Lib/{item["aweme_id"]}.mp4'
                     with open(path, 'wb') as fp:
                         fp.write(requests.get(item['link'], headers=self.headers, timeout=10).content)
-                    print(path)
                     return True
             except Exception as e:
                 print(e)
@@ -380,15 +393,12 @@ class Douyin:
 
 if __name__ == '__main__':
     dou = Douyin()
-    # 将视频评论保存到csv中
     # dou.save2csv(7246412694926937359)
-    # 获取热搜
     # items = dou.get_hotSearch()
-    # 获取搜索
     # items = dou.search_key('Jennie', 2)
-    # 获取用户信息
     # print(dou.get_user('MS4wLjABAAAA0fiq261i6th1gRCsGrZ6SRxCT9DdEz3aJ5nBRnR14N0'))
-    # 获取用户帖子
-    # items = dou.get_user_post('MS4wLjABAAAA0fiq261i6th1gRCsGrZ6SRxCT9DdEz3aJ5nBRnR14N0')
-    # for item in islice(items, 1):
-    #     print(item)
+    items = dou.get_user_post('MS4wLjABAAAA0fiq261i6th1gRCsGrZ6SRxCT9DdEz3aJ5nBRnR14N0')
+    for item in items:
+        # print(item)
+        dou.download(item)
+
