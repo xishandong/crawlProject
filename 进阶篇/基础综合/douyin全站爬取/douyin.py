@@ -1,10 +1,15 @@
 import csv
+import json
 import os
 import time
+from concurrent.futures import ThreadPoolExecutor
+from typing import Union
 from urllib.parse import urlencode
 
 import execjs
-from curl_cffi import requests
+import requests
+from loguru import logger
+from retrying import retry
 
 
 class Douyin:
@@ -16,7 +21,9 @@ class Douyin:
             'pragma': 'no-cache',
             'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36',
         }
-        self.cookies = {}
+        self.cookies = {
+            "sid_tt": "",
+        }
         # 访问所需的api接口
         self.api = [
             'https://www.douyin.com/aweme/v1/web/aweme/post/',
@@ -25,35 +32,31 @@ class Douyin:
             'https://www.douyin.com/aweme/v1/web/comment/list/reply/',
             'https://www.douyin.com/aweme/v1/web/general/search/single/',
             'https://www.douyin.com/aweme/v1/web/hot/search/list/',
-            'https://www.douyin.com/aweme/v1/web/discover/search/'
+            'https://www.douyin.com/aweme/v1/web/discover/search/',
+            'https://www.douyin.com/aweme/v1/web/hot/search/list/'
         ]
 
     # 用于发送请求，设置了5次重试，一般情况如果可以获取数据5次重试就足够了
-    def ajax_requests(self, position, params, retry_times=5):
-        for _ in range(retry_times):
-            try:
-                url = self.api[position]
-                # 选填
-                # params['msToken'] = ''
-                full_url = urlencode(params)
-                # 找到一个可以生成x-b的代码即可
-                xb = execjs.compile(open('x-b.js', 'r', encoding='utf-8').read()).call('sign', full_url,
-                                                                                       self.headers['user-agent'])
-                params['X-Bogus'] = xb
-                resp = requests.get(
-                    url=url, headers=self.headers, params=params, timeout=10, cookies=self.cookies
-                ).json()
-                del params['X-Bogus']
-                # status_code是0的话访问就是成功的
-                if not resp['status_code']:
-                    return resp
-            except Exception as e:
-                print(e, f'retry_times:{_ + 1}:{retry_times}...')
-                time.sleep(5)
+    @retry(stop_max_attempt_number=5, wait_exponential_multiplier=1000, wait_exponential_max=20000)
+    def ajax_requests(self, position, params):
+        url = self.api[position]
+        full_url = urlencode(params)
+        # 找到一个可以生成x-b的代码即可
+        xb = execjs.compile(open('x-b.js', 'r', encoding='utf-8').read()).call('sign', full_url,
+                                                                               self.headers['user-agent'])
+        params['X-Bogus'] = xb
+        logger.debug(f'开始发送{url}请求, 携带的参数为: {params}')
+        resp = requests.get(
+            url=url, headers=self.headers, params=params, timeout=10, cookies=self.cookies
+        ).json()
+        del params['X-Bogus']
+        if not resp['status_code']:
+            return resp
+        return {}
 
     # 通过用户的加密id获取用户的信息
-    # 今天这个接口1失效了，明天再试
     def get_user(self, sec_id):
+        logger.debug(f"开始请求用户信息, {sec_id}")
         params = {
             'device_platform': 'webapp',
             'aid': '6383',
@@ -63,10 +66,13 @@ class Douyin:
         data = self.ajax_requests(1, params)
         user = next(self.search_dir(data, 'user'), None)
         if user:
+            logger.info('获取到用户信息')
             return next(self.get_user_info(user), None)
+        return None
 
     # 通过用户加密的id获取用户发布的短视频或者图文帖子相关信息
     def get_user_post(self, sec_id):
+        logger.debug(f'开始请求用户帖子: {sec_id}')
         params = {
             "device_platform": "webapp",
             "aid": "6383",
@@ -86,9 +92,12 @@ class Douyin:
             for posts in self.search_dir(data, 'aweme_list'):
                 for post in posts:
                     yield from self.get_post(post)
+                    self.__sleep_time(1)
+            self.__sleep_time()
 
     # 通过帖子id获取帖子的全部评论
     def get_comment_by_id(self, id):
+        logger.debug(f"开始请求用户评论, 帖子id: {id}")
         params = {
             'device_platform': 'webapp',
             'aid': '6383',
@@ -104,18 +113,23 @@ class Douyin:
             if next(self.search_dir(data, 'has_more'), None):
                 params['cursor'] = next(self.search_dir(data, 'cursor'), None)
                 continuations.append(params)
-            if data.get('comments'):
-                for comment in data.get('comments'):
-                    yield from self.get_comment(comment)
-                    # 模拟点击更多回复
-                    if comment['reply_comment_total'] > 0:
-                        more_comment_params = {
-                            'aid': '6383',
-                            'comment_id': comment['cid'],
-                            'cursor': '0',
-                            'count': '3',
-                        }
-                        yield from self.more_comments(more_comment_params)
+            if not data.get('comments'):
+                logger.error(f'帖子:{id}, 么有评论哦~')
+                return False
+            for comment in data.get('comments'):
+                yield from self.get_comment(comment)
+                self.__sleep_time(.5)
+                # 模拟点击更多回复
+                if comment['reply_comment_total'] > 0:
+                    more_comment_params = {
+                        'aid': '6383',
+                        'comment_id': comment['cid'],
+                        'cursor': '0',
+                        'count': '3',
+                    }
+                    yield from self.more_comments(more_comment_params)
+                    self.__sleep_time(.5)
+            self.__sleep_time()
 
     # 点击更多回复触发的事件
     def more_comments(self, params):
@@ -130,12 +144,15 @@ class Douyin:
                 continuations.append(params)
             for comment in data.get('comments'):
                 yield from self.get_comment(comment)
-            time.sleep(.5)
+                self.__sleep_time(.5)
+            self.__sleep_time()
 
     # 通过关键词定位短视频
     # sort_type: 0为综合，1为点赞量，2为新发布
     # publish_time: 0为不限，1为一天内，7为一周内，182为半年内
     def search_key(self, key, sort_type=0, publish_time=0):
+        assert sort_type in [0, 1, 2], '排序仅支持0, 1, 2'
+        assert publish_time in [0, 1, 7, 182], '发行时间仅支持0, 1, 7, 182'
         params = {
             'device_platform': 'webapp',
             'aid': '6383',
@@ -181,13 +198,13 @@ class Douyin:
                             for _item in items:
                                 yield from self.get_post(_item)
                     else:
-                        print('\n\n')
-                        print(post)
-                        print('\n\n')
-                    time.sleep(.5)
+                        logger.error(f'出现未知帖子类型(搜索页): {post}')
+                    self.__sleep_time(.5)
+            self.__sleep_time()
 
     # 通过关键词搜索用户
     def search_user(self, key):
+        logger.debug(f"开始搜索用户: {key}")
         params = {
             'device_platform': 'webapp',
             'aid': '6383',
@@ -207,11 +224,13 @@ class Douyin:
                 continuations.append(params)
             for user in data['user_list']:
                 yield from self.get_user_info(user.get('user_info'))
-            time.sleep(.5)
+                self.__sleep_time(.5)
+            self.__sleep_time()
 
     # 获取当前热搜
     def get_hotSearch(self):
-        res = requests.get('https://www.douyin.com/aweme/v1/web/hot/search/list/', headers=self.headers).json()
+        logger.debug("开始搜索热搜")
+        res = self.ajax_requests(7, params={}).json()
         word_list = next(self.search_dir(res, 'word_list'))
         # 只爬取了热搜，如果想要其他信息可以自行找api接口
         for hotpoint in word_list:
@@ -225,10 +244,69 @@ class Douyin:
                 'event_time': event_time
             }
 
+    def save2csv(self, id):
+        _items = self.get_comment_by_id(id)
+        header = ['reply_id', 'comment_id', 'reply_to_reply_id', 'sec_uid', 'user', 'reply_to_user_sec_id',
+                  'reply_to_username', 'text', 'sticker', 'liked', 'reply_count', 'ip', 'create_time']
+        fp = open(f'{id}.csv', 'w', encoding='utf-8', newline='')
+        writer = csv.DictWriter(fp, header)
+        writer.writeheader()
+        flag = 0
+        for _i in _items:
+            flag += 1
+            if flag % 50 == 0:
+                logger.info(f'写入{flag}条数据')
+            writer.writerow(_i)
+
+    def download_user_all_posts(self, user_id):
+        user: dict = self.get_user(user_id)
+        assert user is not None, "获取用户失败!请检查用户id"
+        logger.info(f'获取用户成功, 用户名: {user["nickname"]}, {user}')
+        folder_path = './users/' + user['unique_id']
+        # 创建用户文件夹
+        os.makedirs(folder_path, exist_ok=True)
+        with open(folder_path + '/user_info.json', 'w', encoding='utf-8') as f:
+            f.write(json.dumps(user, ensure_ascii=False))
+        logger.info(f'下载用户: {user["nickname"]}信息完成')
+        # 创建图片文件夹
+        os.makedirs(folder_path + '/img', exist_ok=True)
+        # 创建视频文件夹
+        os.makedirs(folder_path + '/video', exist_ok=True)
+        posts = self.get_user_post(user_id)
+        assert posts is not None, '用户未发布帖子'
+        # 使用多线程下载
+        with ThreadPoolExecutor(max_workers=6) as executor:
+            futures = []
+            for post in posts:
+                future = executor.submit(self.__download, post, folder_path)
+                futures.append(future)
+            for future in futures:
+                future.result()
+            executor.shutdown()
+
+    @retry(stop_max_attempt_number=7, wait_exponential_multiplier=1000, wait_exponential_max=20000)
+    def __download(self, _item, folder_path='./Lib'):
+        logger.info(f'====={_item["desc"]}, 开始下载!=====')
+        if _item['type'] == 'photo':
+            flag = 0
+            for url in _item['link']:
+                path = f'{folder_path}/img/{_item["aweme_id"]}{"aa" + str(flag)}.jpg'
+                with open(path, 'wb') as fp:
+                    fp.write(requests.get(url, headers=self.headers, timeout=10).content)
+                flag += 1
+            logger.info(f'*****{_item["desc"]}, 下载完成!*****')
+            return True
+        else:
+            path = f'{folder_path}/video/{_item["aweme_id"]}.mp4'
+            with open(path, 'wb') as fp:
+                fp.write(requests.get(_item['link'], headers=self.headers, timeout=10).content)
+            logger.info(f'*****{_item["desc"]}, 下载完成!*****')
+            return True
+
     # 在字典中搜索关键字，返回信息，可以搜索到字典中所有匹配的关键字
     @staticmethod
-    def search_dir(items, search_key):
-        stack = [items]
+    def search_dir(_items, search_key):
+        stack = [_items]
         while stack:
             current_item = stack.pop()
             if isinstance(current_item, dict):
@@ -248,25 +326,32 @@ class Douyin:
         desc = post.get('desc')
         create_time = post.get('create_time')
         types = post.get('aweme_type')
-        if types in [0, 55, 107]:
+
+        video_types = [0, 55, 61, 107, 51, 53]
+
+        if types in video_types:
             source = post.get("video")['play_addr'].get('url_list')[0]
         elif types == 68:
             source = [img['url_list'][0] for img in post.get('images')]
+        elif types == 101:
+            return
         else:
             source = types
-            print('\n\n', post, '\n\n')
+            logger.error(f'出现未知帖子类型: {post}')
+            return
         video_tag = [tag['tag_name'] for tag in post.get('video_tag')] if post.get('video_tag') else None
-        text_extra = [extra.get('hashtag_name') for extra in post.get('text_extra')] if post.get('text_extra') else None
-        liked = post.get('statistics').get('digg_count')
-        comment_count = post.get('statistics').get('comment_count')
-        share_count = post.get('statistics').get('share_count')
-        collect_count = post.get('statistics').get('collect_count')
+        text_extra = [extra.get('hashtag_name') for extra in post.get('text_extra')] if post.get(
+            'text_extra') else None
+        liked = post.get('statistics', {}).get('digg_count')
+        comment_count = post.get('statistics', {}).get('comment_count')
+        share_count = post.get('statistics', {}).get('share_count')
+        collect_count = post.get('statistics', {}).get('collect_count')
         region = post.get('region')
 
         yield {
             'aweme_id': aweme_id,
             'desc': desc,
-            'type': 'video' if types in [0, 107, 55] else 'photo',
+            'type': 'video' if types in video_types else 'photo',
             'create_time': create_time,
             'link': source,
             'video_tag': video_tag,
@@ -281,122 +366,74 @@ class Douyin:
     # 获取用户信息
     @staticmethod
     def get_user_info(user):
-        work_count = user.get('aweme_count')
-        nickname = user.get("nickname")
-        sec_uid = user.get('sec_uid')
-        signature = user.get('signature')
-        unique_id = user.get('unique_id') if user.get('unique_id') else user.get('short_id')
-        total_liked = user.get('total_favorited')
-        following_count = user.get('following_count')
-        follower_count = user.get('follower_count')
-        custom_verify = user.get('custom_verify')
-        user_age = user.get('user_age')
-        city = user.get('city', '')
-        country = user.get('country', '')
-        district = user.get('district', '')
-        province = user.get('province', '')
-        school_name = user.get('school_name', '')
+        city = str(user.get('city'))
+        country = str(user.get('country'))
+        district = str(user.get('district'))
+        province = str(user.get('province'))
         yield {
-            'sec_uid': sec_uid,
-            'unique_id': unique_id,
-            'nickname': nickname,
-            'custom_verify': custom_verify,
-            'signature': signature,
-            'work_count': work_count,
-            'user_age': user_age,
-            'following_count': following_count,
-            'total_favorite': total_liked,
-            'follower_count': follower_count,
-            'location': '|'.join([city, province, country, district]),
-            'school': school_name
+            'sec_uid': user.get('sec_uid'),
+            'unique_id': user.get('unique_id') if user.get('unique_id') else user.get('short_id'),
+            'nickname': user.get("nickname"),
+            'custom_verify': user.get('custom_verify'),
+            'signature': user.get('signature'),
+            'work_count': user.get('aweme_count'),
+            'user_age': user.get('user_age'),
+            'following_count': user.get('following_count'),
+            'total_favorite': user.get('total_favorited'),
+            'follower_count': user.get('follower_count'),
+            'location': '|'.join([district, city, province, country]),
+            'ip_location': user.get('ip_location'),
+            'school': user.get('school_name', '暂无')
         }
 
     # 获取评论内容
     @staticmethod
     def get_comment(c):
         sticker = None
-        cid = c.get('cid')
-        create_time = c.get('create_time')
-        digg_count = c.get('digg_count')
-        ip_label = c.get('ip_label')
-        reply_comment_total = c.get('reply_comment_total')
-        text = c.get('text')
-        nickname = c.get('user', {}).get('nickname')
-        sec_uid = c.get('user', {}).get('sec_uid')
-        reply_id = c.get('reply_id')
-        reply_to_reply_id = c.get('reply_to_reply_id')
-        reply_to_username = c.get('reply_to_username')
-        reply_to_user_sec_id = c.get('reply_to_user_sec_id')
         if c.get('sticker'):
             if c.get('sticker').get('animate_url'):
                 sticker = c.get('sticker').get('animate_url').get('url_list')[0]
             elif c.get('sticker').get('static_url'):
                 sticker = c.get('sticker').get('static_url').get('url_list')[0]
-
         yield {
-            'reply_id': reply_id,
-            'comment_id': cid,
-            'reply_to_reply_id': reply_to_reply_id,
-            'sec_uid': sec_uid,
-            'user': nickname,
-            'reply_to_user_sec_id': reply_to_user_sec_id,
-            'reply_to_username': reply_to_username,
-            'text': text,
+            'reply_id': c.get('reply_id'),
+            'comment_id': c.get('cid'),
+            'reply_to_reply_id': c.get('reply_to_reply_id'),
+            'sec_uid': c.get('user', {}).get('sec_uid'),
+            'user': c.get('user', {}).get('nickname'),
+            'reply_to_user_sec_id': c.get('reply_to_user_sec_id'),
+            'reply_to_username': c.get('reply_to_username'),
+            'text': c.get('text'),
             'sticker': sticker,
-            'liked': digg_count,
-            'reply_count': reply_comment_total,
-            'ip': ip_label,
-            'create_time': create_time
+            'liked': c.get('digg_count'),
+            'reply_count': c.get('reply_comment_total'),
+            'ip': c.get('ip_label'),
+            'create_time': c.get('create_time')
         }
 
-    def download(self, item):
-        folder_path = './Lib'
-        if not os.path.exists(folder_path):
-            os.makedirs(folder_path)
-        for _ in range(5):
-            try:
-                if item['type'] == 'photo':
-                    flag = 0
-                    for url in item['link']:
-                        path = f'./Lib/{item["aweme_id"]}{"aa" + str(flag)}.jpg'
-                        with open(path, 'wb') as fp:
-                            fp.write(requests.get(url, headers=self.headers, timeout=10).content)
-                        flag += 1
-                    return True
-                else:
-                    path = f'./Lib/{item["aweme_id"]}.mp4'
-                    with open(path, 'wb') as fp:
-                        fp.write(requests.get(item['link'], headers=self.headers, timeout=10).content)
-                    return True
-            except Exception as e:
-                print(e)
-                print(item)
-                time.sleep(5)
-
-    def save2csv(self, id):
-        _items = self.get_comment_by_id(id)
-        header = ['reply_id', 'comment_id', 'reply_to_reply_id', 'sec_uid', 'user', 'reply_to_user_sec_id',
-                  'reply_to_username', 'text', 'sticker', 'liked', 'reply_count', 'ip', 'create_time']
-        fp = open(f'{id}.csv', 'w', encoding='utf-8', newline='')
-        writer = csv.DictWriter(fp, header)
-        writer.writeheader()
-        flag = 0
-        for _i in _items:
-            flag += 1
-            if flag % 100 == 0:
-                print(f'写入{flag}条数据')
-            writer.writerow(_i)
+    @staticmethod
+    def __sleep_time(t: Union[int, float] = 5):
+        time.sleep(t)
 
 
 if __name__ == '__main__':
     dou = Douyin()
-    # dou.save2csv(7279027457452150016)
-    # items = dou.get_comment_by_id('7279027457452150016')
+    # 保存帖子评论
+    # dou.save2csv('7260706141649390904')
+    # 获取帖子评论
+    # items = dou.get_comment_by_id('7260706141649390904')
+    # 获取热搜
     # items = dou.get_hotSearch()
-    # items = dou.search_key('Jennie', 2)
-    # items = dou.search_user('iu')
-    print(dou.get_user('MS4wLjABAAAA0fiq261i6th1gRCsGrZ6SRxCT9DdEz3aJ5nBRnR14N0'))
-    items = dou.get_user_post('MS4wLjABAAAA0fiq261i6th1gRCsGrZ6SRxCT9DdEz3aJ5nBRnR14N0')
-    for item in items:
-        print(item)
-        # dou.download(item)
+    # 关键词搜索
+    # items = dou.search_key('Jennie', 0)
+    # 搜索用户
+    # items = dou.search_user('26478510937')
+    # 获取用户信息
+    # print(dou.get_user('MS4wLjABAAAA9IWeOQVdHpQwC-apWrvw1QV3Gw0BZjARF7K9MenAK4TPEpk06olW1enFCFyDiE0c'))
+    # 保存用户所有帖子，分门别类，视频和图片以及个人信息
+    # dou.download_user_all_posts('MS4wLjABAAAAyJa3vYALkXuCuyrV9PLRHdUMgMQVXqUM-ZOkFkgO30pf-CzpwEhYR3CMDWPB1MKH')
+    # 获取用户帖子
+    # items = dou.get_user_post('MS4wLjABAAAA0fiq261i6th1gRCsGrZ6SRxCT9DdEz3aJ5nBRnR14N0')
+
+    # for item in items:
+    #     print(item)

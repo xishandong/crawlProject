@@ -65,6 +65,8 @@ graph TD;
  pip install m3u8 # 下载m3u8视频
  pip install prettytable # 格式化输出
  pip install tqdm # 进度条
+ pip install loguru # 强大的日志工具库
+ pip install retrying # 强大的重试工具
  npm install crypto-js/cryptojs # 二选一，js标准密码库
  npm insatll jsdom # js模拟浏览器的dom和bom
  npm insatll tough-cookie # 浏览器cookie
