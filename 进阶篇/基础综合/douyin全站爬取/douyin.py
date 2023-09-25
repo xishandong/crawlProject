@@ -2,7 +2,7 @@ import csv
 import json
 import os
 import time
-from threading import Lock, Condition
+from threading import Lock
 from concurrent.futures import ThreadPoolExecutor
 from typing import Union
 from urllib.parse import urlencode
@@ -36,9 +36,7 @@ class Douyin:
             'https://www.douyin.com/aweme/v1/web/discover/search/',
         ]
         # 线程锁相关
-        self.write_in_progress = False
         self.file_lock = Lock()
-        self.write_condition = Condition(lock=self.file_lock)
 
     # 用于发送请求，设置了5次重试，一般情况如果可以获取数据5次重试就足够了
     @retry(stop_max_attempt_number=5, wait_exponential_multiplier=1000, wait_exponential_max=20000)
@@ -290,22 +288,6 @@ class Douyin:
                         logger.debug('写入表头了')
                     if comment:
                         writer.writerow(comment)
-
-            with self.file_lock:
-                # 等待写入权限
-                while self.write_in_progress:
-                    self.write_condition.wait()
-                # 占位
-                self.write_in_progress = True
-                with open(f'{id}.csv', mode, encoding='utf-8', newline='') as fp:
-                    writer = csv.DictWriter(fp, header)
-                    if is_write_headers:
-                        writer.writeheader()
-                    if comment:
-                        writer.writerow(comment)
-                # 完成写入，释放写入权限
-                self.write_in_progress = False
-                self.write_condition.notify_all()
 
         _items = self.get_comment_by_id(id)
 
