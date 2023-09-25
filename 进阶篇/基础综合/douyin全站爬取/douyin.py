@@ -23,7 +23,7 @@ class Douyin:
             'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36',
         }
         self.cookies = {
-            "sid_tt": "585fa50b2957def5b8679dda6e5afbc7",
+            "sid_tt": "",
         }
         # 访问所需的api接口
         self.api = [
