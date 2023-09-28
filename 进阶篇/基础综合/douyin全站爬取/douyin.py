@@ -2,8 +2,8 @@ import csv
 import json
 import os
 import time
-from threading import Lock
 from concurrent.futures import ThreadPoolExecutor
+from threading import Lock
 from typing import Union
 from urllib.parse import urlencode
 
@@ -11,6 +11,14 @@ import execjs
 import requests
 from loguru import logger
 from retrying import retry
+
+# 配置日志信息
+logger.add(
+    "log_1.log",  # 日子文件名，后留一个占位符
+    rotation='1 MB',     # 日志分割，可以根据时间也可以根据大小
+    colorize=False,        # 是否染色
+    level='DEBUG'         # 日志等级
+)
 
 
 class Douyin:
@@ -39,8 +47,10 @@ class Douyin:
         self.file_lock = Lock()
 
     # 用于发送请求，设置了5次重试，一般情况如果可以获取数据5次重试就足够了
-    @retry(stop_max_attempt_number=5, wait_exponential_multiplier=1000, wait_exponential_max=20000)
-    def ajax_requests(self, position, params):
+    @logger.catch
+    @retry(stop_max_attempt_number=5, wait_exponential_multiplier=5000, wait_exponential_max=30000)
+    def ajax_requests(self, position: int, params) -> dict:
+        assert position < len(self.api), "错误的url索引"
         url = self.api[position]
         full_url = urlencode(params)
         # 找到一个可以生成x-b的代码即可
@@ -54,10 +64,12 @@ class Douyin:
         del params['X-Bogus']
         if not resp['status_code']:
             return resp
+        # 能运行到此处，说明服务器返回了信息，但是状态码错误，说明请求参数可能出现问题
+        logger.error(f'未获取到有效数据...')
         return {}
 
     # 通过用户的加密id获取用户的信息
-    def get_user(self, sec_id):
+    def get_user(self, sec_id: str) -> dict:
         logger.debug(f"开始请求用户信息, {sec_id}")
         params = {
             'device_platform': 'webapp',
@@ -70,15 +82,15 @@ class Douyin:
         except json.JSONDecodeError:
             logger.error(
                 f'超过五次服务器未返回信息，更新cookie或者检查加密参数是否错误，发送错误api编号{1}, params: {params}')
-            return None
+            return {}
         user = next(self.__search_dir(data, 'user'), None)
         if user:
-            logger.info('获取到用户信息')
+            logger.debug('获取到用户信息')
             return next(self.__get_user_info(user), None)
-        return None
+        logger.error(f'未获取用户信息: {sec_id}')
 
     # 通过用户加密的id获取用户发布的短视频或者图文帖子相关信息
-    def get_user_post(self, sec_id):
+    def get_user_post(self, sec_id: str):
         logger.debug(f'开始请求用户帖子: {sec_id}')
         params = {
             "device_platform": "webapp",
@@ -115,9 +127,10 @@ class Douyin:
             'aid': '6383',
             'aweme_id': id,
             'cursor': '0',
-            'count': '20',
+            'count': '50',
         }
         continuations = [params]
+        retry_times = 0
         while continuations:
             continuation = continuations.pop()
             try:
@@ -125,14 +138,22 @@ class Douyin:
             except json.JSONDecodeError:
                 logger.error(
                     f'超过五次服务器未返回信息，更新cookie或者检查加密参数是否错误，发送错误api编号{2}, params: {continuation}')
-                return None
+                return
             # 模拟向下滑动
-            if next(self.__search_dir(data, 'has_more'), None):
-                params['cursor'] = next(self.__search_dir(data, 'cursor'), None)
-                continuations.append(params)
             if not data.get('comments'):
-                logger.info(f'帖子:{id}, 么有评论哦~')
-                return None
+                retry_times += 1
+                if retry_times >= 5 and continuation['cursor'] != '0':
+                    logger.error(f'帖子:{id},在{self.api[2]},{continuation}下返回数据{data}')
+                    return
+                logger.info(f'重试第{retry_times}次 --> 帖子:{id},在{self.api[2]},{continuation}下得不到评论')
+                continuations.append(continuation)
+                self.__sleep_time(2 ** retry_times)
+                continue
+            # 走到这说明上一个接口返回数据了
+            retry_times = 1
+            if next(self.__search_dir(data, 'has_more'), None):
+                params['cursor'] = next(self.__search_dir(data, 'cursor'))
+                continuations.append(params)
             for comment in data.get('comments'):
                 yield from self.__get_comment(comment)
                 # 模拟点击更多回复
@@ -141,14 +162,15 @@ class Douyin:
                         'aid': '6383',
                         'comment_id': comment['cid'],
                         'cursor': '0',
-                        'count': '10',
+                        'count': '50',
                     }
                     yield from self.more_comments(more_comment_params)
             self.__sleep_time()
 
     # 点击更多回复触发的事件
-    def more_comments(self, params):
+    def more_comments(self, params: dict):
         continuations = [params]
+        retry_times = 0
         while continuations:
             continuation = continuations.pop()
             try:
@@ -157,18 +179,28 @@ class Douyin:
                 logger.error(
                     f'超过五次服务器未返回信息，更新cookie或者检查加密参数是否错误，发送错误api编号{3}, params: {continuation}')
                 return None
+            try:
+                for comment in data.get('comments'):
+                    yield from self.__get_comment(comment)
+            except TypeError:
+                retry_times += 1
+                if retry_times <= 5:
+                    logger.info(f'第{retry_times}次重试-->此次未获取到数据，重试：{continuation}')
+                    self.__sleep_time(2 ** retry_times)
+                    continuations.append(continuation)
+                else:
+                    logger.error(f'超过五次也未能获取:{self.api[3]}, {continuation}')
+                    break
             # 模拟点击更多回复
             if next(self.__search_dir(data, 'has_more'), None):
                 params['cursor'] = next(self.__search_dir(data, 'cursor'), None)
-                params['count'] = '10'
+                params['count'] = '50'
                 continuations.append(params)
-            for comment in data.get('comments'):
-                yield from self.__get_comment(comment)
 
     # 通过关键词定位短视频
     # sort_type: 0为综合，1为点赞量，2为新发布
     # publish_time: 0为不限，1为一天内，7为一周内，182为半年内
-    def search_key(self, key, sort_type=0, publish_time=0):
+    def search_key(self, key, sort_type: int = 0, publish_time: int = 0):
         assert sort_type in [0, 1, 2], '排序仅支持0, 1, 2'
         assert publish_time in [0, 1, 7, 182], '发行时间仅支持0, 1, 7, 182'
         params = {
@@ -225,7 +257,7 @@ class Douyin:
             self.__sleep_time()
 
     # 通过关键词搜索用户
-    def search_user(self, key):
+    def search_user(self, key: str):
         logger.debug(f"开始搜索用户: {key}")
         params = {
             'device_platform': 'webapp',
@@ -275,8 +307,9 @@ class Douyin:
                 'event_time': event_time
             }
 
-    def save_comment_to_csv_by_id(self, id):
-        def write_comments(is_write_headers, comment=None):
+    @logger.catch
+    def save_comment_to_csv_by_id(self, id: str) -> None:
+        def write_comments(is_write_headers: bool, comment=None):
             header = ['reply_id', 'comment_id', 'reply_to_reply_id', 'sec_uid', 'user', 'reply_to_user_sec_id',
                       'reply_to_username', 'text', 'sticker', 'liked', 'reply_count', 'ip', 'create_time']
             mode = 'a' if not is_write_headers else 'w'
@@ -293,7 +326,7 @@ class Douyin:
 
         is_first = True
         # 使用多线程下载
-        with ThreadPoolExecutor(max_workers=16) as executor:
+        with ThreadPoolExecutor(max_workers=100) as executor:
             futures = []
             for _i in _items:
                 if is_first and _i:
@@ -306,9 +339,10 @@ class Douyin:
             executor.shutdown()
         logger.info(f'帖子: {id}下载完毕...')
 
-    def download_user_all_posts(self, user_id):
+    @logger.catch
+    def download_user_all_posts(self, user_id: str) -> None:
         user: dict = self.get_user(user_id)
-        assert user is not None, "获取用户失败!请检查用户id"
+        assert user != {}, "获取用户失败!请检查用户id"
         logger.info(f'获取用户成功, 用户名: {user["nickname"]}, {user}')
         folder_path = './users/' + user['unique_id']
         # 创建用户文件夹
@@ -321,7 +355,6 @@ class Douyin:
         # 创建视频文件夹
         os.makedirs(folder_path + '/video', exist_ok=True)
         posts = self.get_user_post(user_id)
-        assert posts is not None, '用户未发布帖子'
         # 使用多线程下载
         with ThreadPoolExecutor(max_workers=6) as executor:
             futures = []
@@ -332,10 +365,11 @@ class Douyin:
                 future.result()
             executor.shutdown()
 
-    def __download(self, _item, folder_path='./Lib'):
+    @logger.catch
+    def __download(self, _item: dict, folder_path: str = './Lib') -> bool:
         @retry(stop_max_attempt_number=7, wait_exponential_multiplier=1000, wait_exponential_max=20000)
-        def download_source(link, path):
-            with open(path, 'wb') as fp:
+        def download_source(link: str, _path: str):
+            with open(_path, 'wb') as fp:
                 fp.write(requests.get(link, headers=self.headers, timeout=10).content)
 
         logger.info(f'====={_item["desc"]}, 开始下载!=====')
@@ -363,7 +397,7 @@ class Douyin:
 
     # 在字典中搜索关键字，返回信息，可以搜索到字典中所有匹配的关键字
     @staticmethod
-    def __search_dir(_items, search_key):
+    def __search_dir(_items: dict, search_key: str):
         stack = [_items]
         while stack:
             current_item = stack.pop()
@@ -379,12 +413,8 @@ class Douyin:
 
     # 获取帖子的内容
     @staticmethod
-    def __get_post(post):
-        aweme_id = post.get('aweme_id')
-        desc = post.get('desc')
-        create_time = post.get('create_time')
+    def __get_post(post: dict):
         types = post.get('aweme_type')
-
         video_types = [0, 55, 61, 107, 51, 53]
 
         if types in video_types:
@@ -396,33 +426,26 @@ class Douyin:
         else:
             logger.error(f'出现未知帖子类型: {post}')
             return
-        video_tag = [tag['tag_name'] for tag in post.get('video_tag')] if post.get('video_tag') else None
-        text_extra = [extra.get('hashtag_name') for extra in post.get('text_extra')] if post.get(
-            'text_extra') else None
-        liked = post.get('statistics', {}).get('digg_count')
-        comment_count = post.get('statistics', {}).get('comment_count')
-        share_count = post.get('statistics', {}).get('share_count')
-        collect_count = post.get('statistics', {}).get('collect_count')
-        region = post.get('region')
 
         yield {
-            'aweme_id': aweme_id,
-            'desc': desc,
+            'aweme_id': post.get('aweme_id'),
+            'desc': post.get('desc'),
             'type': 'video' if types in video_types else 'photo',
-            'create_time': create_time,
+            'create_time': post.get('create_time'),
             'link': source,
-            'video_tag': video_tag,
-            'text_extra': text_extra,
-            'region': region,
-            'liked': liked,
-            'comment_count': comment_count,
-            'collect_count': collect_count,
-            'share_count': share_count
+            'video_tag': [tag['tag_name'] for tag in post.get('video_tag')] if post.get('video_tag') else None,
+            'text_extra': [extra.get('hashtag_name') for extra in post.get('text_extra')] if post.get(
+                'text_extra') else None,
+            'region': post.get('region'),
+            'liked': post.get('statistics', {}).get('digg_count'),
+            'comment_count': post.get('statistics', {}).get('comment_count'),
+            'collect_count': post.get('statistics', {}).get('collect_count'),
+            'share_count': post.get('statistics', {}).get('share_count')
         }
 
     # 获取用户信息
     @staticmethod
-    def __get_user_info(user):
+    def __get_user_info(user: dict):
         city = str(user.get('city'))
         country = str(user.get('country'))
         district = str(user.get('district'))
@@ -445,7 +468,7 @@ class Douyin:
 
     # 获取评论内容
     @staticmethod
-    def __get_comment(c):
+    def __get_comment(c: dict):
         sticker = None
         if c.get('sticker'):
             if c.get('sticker').get('animate_url'):
@@ -469,7 +492,7 @@ class Douyin:
         }
 
     @staticmethod
-    def __sleep_time(t: Union[int, float] = 1.5):
+    def __sleep_time(t: Union[int, float] = .5):
         time.sleep(t)
 
 
