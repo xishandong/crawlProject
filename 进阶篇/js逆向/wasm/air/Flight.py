@@ -6,7 +6,7 @@ from urllib.parse import quote
 import execjs
 import prettytable as pt
 import requests
-# 导入获取滑块请求信息的两个函数
+
 from acw_tc_3 import get_226, replace_info
 
 
@@ -18,18 +18,17 @@ class CEAir:
             'Content-Type': 'application/json',
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36',
         }
-        self.cookies = {
-        }
-        # 如果不使用session那么就需要把服务器返回的cookie都提取出来然后放到self.cookies里面
+        self.cookies = {}
+
         self.session = requests.Session()
         self.flag = 1
         self.get_acw_tc()
 
     def get_acw_tc(self):
         resp = self.session.get('https://m.ceair.com/mapp/Home', headers=self.headers)
-        # acw_tc = resp.cookies.get('acw_tc')
-        # if acw_tc:
-        #     self.cookies['acw_tc'] = acw_tc
+        acw_tc = resp.cookies.get('acw_tc')
+        if acw_tc:
+            self.cookies['acw_tc'] = acw_tc
 
     def ajax_request(self, *, url, json_data, params: dict) -> json:
         """
@@ -45,11 +44,15 @@ class CEAir:
                 'refer__1036': refer
             }
         else:
+            params['refer__1036'] = refer
             par = params
         resp = self.session.post(url=url, params=par, json=json_data, headers=self.headers, cookies=self.cookies)
-        # acw_sc_v3 = resp.cookies.get('acw_sc_v3')
-        # if acw_sc_v3:
-        #     self.cookies['acw_sc_v3'] = acw_sc_v3
+        acw_sc_v3 = resp.cookies.get('acw_sc__v3')
+        acw_tc = resp.cookies.get('acw_tc')
+        if acw_tc:
+            self.cookies['acw_tc'] = acw_tc
+        if acw_sc_v3:
+            self.cookies['acw_sc__v3'] = acw_sc_v3
         try:
             data = resp.json()['res']
             ctx = execjs.compile(open('./demo.js', 'r', encoding='utf-8').read()).call('decrypto', data)
@@ -80,7 +83,7 @@ class CEAir:
             'Referer': url,
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36',
             'X-CEAIR-OS': 'M',
-            'transactionId': '0520230802122637749',
+            'transactionId': '05202304231034048094',
         })
         json_data = {
             "currentQueryType": "FLIGHT_LIST", "currentSegIndex": 0, "carryChd": False, "carryInf": False,
@@ -141,19 +144,15 @@ class CEAir:
         return execjs.compile(open('./demo.js', 'r', encoding='utf-8').read()).call('getCookie', arg)
 
     def acw_sc_v3(self, html: str = ''):
-        try:
-            print('====开始处理滑块====')
-            if html:
-                replace_info(html)
-            result = get_226()
-            if result['code'] != 0:
-                raise '滑动失败'
-            print(f'result: {result}')
-            print('====结束处理滑块====')
-            return result
-        except Exception as e:
-            print(e)
+        print('====开始处理滑块====')
+        if html:
+            replace_info(html)
+        result = get_226()
+        if result['code'] != 0:
             return self.acw_sc_v3()
+        print(f'result: {result}')
+        print('====结束处理滑块====')
+        return result
 
     @staticmethod
     def process_json(flights):
@@ -232,10 +231,21 @@ class CEAir:
                     return resp[0]['CityCode']
                 else:
                     return None
+            except KeyError:
+                return None
             except:
                 time.sleep(2)
 
 
 if __name__ == '__main__':
     flight = CEAir()
-    flight.get_flight(arr='shanghai', dep='beijing', date='20230829')
+    try:
+        while True:
+            arr = input('输入到达城市: ')
+            dep = input('输入出发城市: ')
+            date = input('输入出发时间(20230820): ')
+            flight.get_flight(arr=arr, dep=dep, date=date)
+    except KeyboardInterrupt:
+        print('\n')
+        print(flight.cookies)
+        print('Bye!')

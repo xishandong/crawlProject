@@ -4,6 +4,7 @@ import re
 from urllib.parse import urlparse, parse_qs
 
 import playwright.sync_api
+import requests
 from playwright.sync_api import sync_playwright
 
 # 存放滑块的页面
@@ -40,45 +41,51 @@ def replace_info(html: str):
         with open(FILEPATH, 'w', encoding='utf-8') as f:
             f.write(new_html)
 
-
 def get_226() -> dict:
-    result: dict = {}
     pattern = re.compile(r'\((.*)\)', re.S)
+    result: dict = {}
 
     def intercept_xhr(route: playwright.sync_api.Route):
         params = parse_qs(urlparse(route.request.url).query)
         result['t'] = params['t'][0]
-        # 这里不指定headers会出现意想不到的错误
-        resp = route.fetch(headers=headers)
-        data = json.loads(pattern.findall(resp.text())[0])
+        resp = requests.get(url=route.request.url, headers=headers)
+        data = json.loads(pattern.findall(resp.text)[0])
         # 我们获取到了数据是不是应该返还给result
         print(data)
-        route.fulfill(response=resp)
+        route.abort()
 
     with sync_playwright() as p:
-        # 创建一个ws链接
-        browser = p.chromium.connect_over_cdp(WS_URL)
-        # 使用浏览器的上下文创建页面
-        content = browser.contexts[0]
+        # 使用强化脚本来过验证
+        browser = p.chromium.launch(
+            # headless=False,
+        )
+        ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36'
+        content = browser.new_context(user_agent=ua)
+        content.add_init_script(path=r'D://crawlProjects/stealth.min.js')
         page = content.new_page()
-        # 设置拦截规则
+
+        # # 创建一个ws链接
+        # browser = p.chromium.connect_over_cdp(WS_URL)
+        # # 使用浏览器的上下文创建页面
+        # content = browser.contexts[0]
+        # page = content.new_page()
+
         page.route(INTERRUPT_ROUTE, intercept_xhr)
         page.goto(FILEPATH)
-        # 开始滑动，获取对应的东西，在滑动距离增加一些随机值
+
         btn = page.locator('#nc_1_n1z')
         btn_position = btn.bounding_box()
         new_x = btn_position['x'] + random.randint(290, 310)
         new_y = btn_position['y']
         page.mouse.click(btn_position['x'], btn_position['y'])
-        # 滑动了
+
         page.mouse.down()
         page.mouse.move(new_x, new_y)
         page.mouse.up()
-        # 等待一段时间以观察拖动效果
-        page.wait_for_timeout(1000)
-        # 关闭所有
+
         page.close()
         content.close()
         browser.close()
-    # 返回结果
+
     return result
+
