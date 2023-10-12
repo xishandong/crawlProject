@@ -165,7 +165,7 @@ graph TD;
 | 大地骑士 | ins爬虫        | 对于页面参数提取以及解析json文件                                                                                                                                                          | [点这里](https://github.com/xishandong/crawlProject/tree/main/%E8%BF%9B%E9%98%B6%E7%AF%87/%E5%9F%BA%E7%A1%80%E7%BB%BC%E5%90%88) |
 | 大地骑士 | douyin全站数据爬取 | 包括视频图片下载，评论爬取，用户信息爬取...   目前部分接口也开始x-b检测了，如果需要用到被检测接口，则需要加上x-b才可以获取数据, 现在重新整合签名，大家在github找到获取签名的js文件即可，放到douyin文件同目录下命名为x-b.js即可, up提供了一个在github上别人开源的代码仓库，在代码中标志了仓库，目前可以使用 | [点这里](https://github.com/xishandong/crawlProject/tree/main/%E8%BF%9B%E9%98%B6%E7%AF%87/%E5%9F%BA%E7%A1%80%E7%BB%BC%E5%90%88) |
 | 大地骑士 | weibo全站数据爬取  | 包括搜索用户，搜索帖子，下载评论，下载用户相册，用户主页，用户信息...                                                                                                                                        | [点这里](https://github.com/xishandong/crawlProject/tree/main/%E8%BF%9B%E9%98%B6%E7%AF%87/%E5%9F%BA%E7%A1%80%E7%BB%BC%E5%90%88) |
-
+| 未知等级 | 爬虫轮子 | 个人对常用的爬虫方法进行二次封装，方便后期开发 |[点这里](https://github.com/xishandong/crawlProject/tree/main/%E8%BF%9B%E9%98%B6%E7%AF%87/%E5%9F%BA%E7%A1%80%E7%BB%BC%E5%90%88) |
 ### js逆向专题
 
 ***
