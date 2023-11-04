@@ -1,6 +1,7 @@
 import csv
 import json
 import random
+import sys
 import time
 from concurrent.futures import ThreadPoolExecutor
 from threading import Lock
@@ -36,12 +37,19 @@ class Log:
     log = logger
 
     # 配置日志信息
-    # log.add(
-    #     "log.log",  # 日子文件名，后留一个占位符
-    #     rotation='10 MB',  # 日志分割，可以根据时间也可以根据大小
-    #     colorize=False,  # 是否染色
-    #     level='DEBUG'  # 日志等级
-    # )
+    def set_log_file(self, filepath: str = 'log.log', rotation: int = 10, level: str = 'DEBUG', color: bool = False):
+        self.log.add(
+            filepath,  # 日子文件名，后留一个占位符
+            rotation=f'{rotation} MB',  # 日志分割，可以根据时间也可以根据大小
+            colorize=color,  # 是否染色
+            level=level  # 日志等级
+        )
+
+    def set_level(self, level):
+        # 移除默认的控制台输出处理器
+        self.log.remove()
+        # 添加一个新的控制台输出处理器，只输出 INFO 级别或更高级别的日志消息
+        logger.add(sys.stdout, level=level)
 
     @property
     def debug(self):
@@ -327,26 +335,3 @@ class CrawlBase(object):
             col = [dye_text(i, column_color, random_column_color) for i in column]
             table.add_column(dye_text(column_names[j], header_color, random_header_color), col)
         print(table)
-
-
-if __name__ == '__main__':
-    c = CrawlBase()
-    test_list_dict = [
-        {
-            'name': 'test',
-            'arg': 18,
-            'interest': 'coding'
-        },
-        {
-            'name': 'test1',
-            'arg': 19,
-        },
-        {
-            'name': 'test2',
-            'arg': 20,
-            'interest': 'coding',
-            'hobby': 'singing',
-            'value': 'test'
-        }
-    ]
-    c.format_table_print(items=test_list_dict, column_color='green', random_column_color=True, random_header_color=True)
