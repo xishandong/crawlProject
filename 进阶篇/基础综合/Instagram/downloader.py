@@ -1,6 +1,6 @@
 import time
 
-from requests import Session
+from tls_client import Session
 
 # which need login cookie
 # user info, not necessarily
@@ -25,7 +25,7 @@ from requests import Session
 #     "rur": ""
 #     }
 cookie = {
-    # your login cookie
+    # your cookie
 }
 
 PARAMS = r'("app_id":\s*"[^"]+")|("claim":\s*"[^"]+")|("csrf_token":\s*"[^"]+")|(["LSD",[],{"token":\s*"[^"]+")'
@@ -46,7 +46,7 @@ proxy = {
 class Ins:
     def __init__(self, cookies: dict):
         self.cookies = cookies
-        self.session = Session()
+        self.session = Session(client_identifier="chrome_104", random_tls_extension_order=True)
         self.session.proxies.update(proxy)
         self.headers = {
             'sec-fetch-mode': 'cors',
