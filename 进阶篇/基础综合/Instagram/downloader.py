@@ -1,37 +1,70 @@
-import re
 import time
 
-import requests
+from requests import Session
 
+# which need login cookie
+# user info, not necessarily
+# post, need
+# comment, need
+
+# cookie example
+# {
+#     "wd": "",
+#     "dpr": "",
+#     "mid": "",
+#     "datr": "",
+#     "ig_did": "",
+#     "ig_nrcb": "",
+#     "ps_l": "1",
+#     "ps_n": "1",
+#     "csrftoken": "",
+#     "ds_user_id": "",
+#     "sessionid": "",
+#     "shbid": "",
+#     "shbts": "",
+#     "rur": ""
+#     }
 cookie = {
-    # 你的cookies
+    # your login cookie
 }
 
-PARAMS = r'("app_id":\s*"[^"]+")|("claim":\s*"[^"]+")|("csrf_token":\s*"[^"]+")'
+PARAMS = r'("app_id":\s*"[^"]+")|("claim":\s*"[^"]+")|("csrf_token":\s*"[^"]+")|(["LSD",[],{"token":\s*"[^"]+")'
 
 URLS = [
-    'https://www.instagram.com/',
-    'https://www.instagram.com/api/v1/users/web_profile_info/',
-    'https://www.instagram.com/api/v1/feed/user',
-    'https://www.instagram.com/api/v1/media/'
+    'https://i.instagram.com/',
+    'https://i.instagram.com/api/v1/users/web_profile_info/',
+    'https://i.instagram.com/api/v1/feed/user',
+    'https://i.instagram.com/api/v1/media/'
 ]
+# proxy, selectable
+proxy = {
+    "http": "http://127.0.0.1:17890",
+    "https": "http://127.0.0.1:17890",
+}
 
 
 class Ins:
     def __init__(self, cookies: dict):
         self.cookies = cookies
-        self.session = requests.Session()
+        self.session = Session()
+        self.session.proxies.update(proxy)
         self.headers = {
-            'authority': 'www.instagram.com',
-            'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
-            'accept-language': 'zh-CN,zh;q=0.9',
-            'sec-ch-ua-full-version-list': '"Google Chrome";v="113.0.5672.63", "Chromium";v="113.0.5672.63", "Not-A.Brand";v="24.0.0.0"',
-            'sec-fetch-site': 'same-origin',
-            'upgrade-insecure-requests': '1',
-            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36',
-            'viewport-width': '1536',
+            'sec-fetch-mode': 'cors',
+            'referer': 'https://www.instagram.com/',
+            'x-ig-app-id': '936619743392459',
+            'sec-fetch-site': 'same-site',
+            'accept-language': 'zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7',
+            'x-asbd-id': '198387',
+            'accept': '*/*',
+            'sec-ch-ua': 'Chromium";v="104", " Not A;Brand";v="99", "Google Chrome";v="104"',
+            'sec-ch-ua-mobile': '?0',
+            'x-ig-www-claim': 'hmac.AR11qy__GsvLpiS4wKBygLGdxs2DxJB1esTkBw7b2QFaHH2d',
+            'authority': 'i.instagram.com',
+            'sec-ch-ua-platform': 'Windows"',
+            'x-instagram-ajax': '1006400593',
+            'sec-fetch-dest': 'empty',
+            'user-agent': 'Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.5112.102 Safari/537.36'
         }
-        self.get_Header_params()
 
     def ajax_request(self, url: str, /, params=None):
         """
@@ -44,32 +77,10 @@ class Ins:
             try:
                 resp = self.session.get(url, headers=self.headers, params=params, cookies=self.cookies)
                 return resp.json()
-            except requests.exceptions.RequestException:
+            except:
                 time.sleep(15)
         else:
             return None
-
-    def get_Header_params(self):
-        """
-        every time visit ins will change header params, this is to get the header params
-        :return: None
-        """
-        try:
-            response = self.session.get(URLS[0], cookies=self.cookies, headers=self.headers)
-            matches = re.findall(PARAMS, response.text)
-            result = [match[i] for match in matches for i in range(3) if match[i]]
-            # get app_id
-            app_id = result[0].split(":")[1].strip().strip('"')
-            # get claim
-            claim = result[1].split(":")[1].strip().strip('"')
-            # get csrf_token, if lose cookies, cannot get this param, also cannot access to other apis
-            csrf_token = result[2].split(":")[1].strip().strip('"')
-            # set values to headers
-            self.headers.update({'x-asbd-id': '198387', 'x-csrftoken': csrf_token,
-                                 'x-ig-app-id': app_id, 'x-ig-www-claim': claim,
-                                 'x-requested-with': 'XMLHttpRequest', })
-        except requests.exceptions.RequestException:
-            raise 'Request error, please try again and check your Internet settings'
 
     def get_userInfo(self, userName: str):
         """
@@ -227,8 +238,8 @@ class Ins:
 
 if __name__ == '__main__':
     INS = Ins(cookie)
-    items = INS.get_userPosts('renebaebae')
-    # items = INS.get_comments('3092771276598639274')
+    # items = INS.get_userPosts('renebaebae')
+    items = INS.get_comments('3092771276598639274')
     for item in items:
         print(item)
         break
