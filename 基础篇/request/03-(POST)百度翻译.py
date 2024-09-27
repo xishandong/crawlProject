@@ -12,7 +12,7 @@ if __name__ == '__main__':
     # post请求参数处理
     word = input('enter a word:')
     data = {
-        'kw': word
+        'keyword': word
     }
     # 请求发送
     response = requests.post(url=post_url, data=data, headers=headers)
